@@ -1186,6 +1186,12 @@
       "config_flow": true,
       "iot_class": "local_polling"
     },
+    "daikin_p1p2bus": {
+      "name": "Daikin P1/P2",
+      "integration_type": "hub",
+      "config_flow": true,
+      "iot_class": "local_polling"
+    },
     "danfoss_air": {
       "name": "Danfoss Air",
       "integration_type": "hub",

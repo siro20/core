@@ -756,6 +756,9 @@ connect-box==0.3.1
 # homeassistant.components.xiaomi_miio
 construct==2.10.68
 
+# homeassistant.components.daikin_p1p2bus
+construct==2.10.70
+
 # homeassistant.components.cookidoo
 cookidoo-api==0.14.0
 
@@ -2370,6 +2373,7 @@ pyschlage==2025.9.0
 # homeassistant.components.sensibo
 pysensibo==1.2.1
 
+# homeassistant.components.daikin_p1p2bus
 # homeassistant.components.serial
 pyserial-asyncio-fast==0.16
 
@@ -2413,6 +2417,7 @@ pysmarty2==0.10.3
 # homeassistant.components.smhi
 pysmhi==1.1.0
 
+# homeassistant.components.daikin_p1p2 copy
 # homeassistant.components.edl21
 pysml==0.1.5
 

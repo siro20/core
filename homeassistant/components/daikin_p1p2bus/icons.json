@@ -1,0 +1,92 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "dhw_boiler_running": {
+        "default": "mdi:gas-burner",
+        "state": {
+          "on": "mdi:fire"
+        }
+      },
+      "compressor_running": {
+        "default": "mdi:heat-pump-outline",
+        "state": {
+          "on": "mdi:heating-coil"
+        }
+      },
+      "main_pump_running": {
+        "default": "mdi:pump",
+        "state": {
+          "off": "mdi:pump-off"
+        }
+      },
+      "dhw_circulation_running": {
+        "default": "mdi:pump",
+        "state": {
+          "off": "mdi:pump-off"
+        }
+      },
+      "gas_boiler_enabled": {
+        "default": "mdi:radiator",
+        "state": {
+          "off": "mdi:radiator-off"
+        }
+      },
+      "dhw_tank_enabled": {
+        "default": "mdi:radiator",
+        "state": {
+          "off": "mdi:radiator-off"
+        }
+      },
+      "heating_enabled": {
+        "default": "mdi:radiator",
+        "state": {
+          "off": "mdi:radiator-off"
+        }
+      },
+      "cooling_enabled": {
+        "default": "mdi:radiator",
+        "state": {
+          "off": "mdi:radiator-off"
+        }
+      }
+    },
+    "sensor": {
+      "lwt_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "dhw_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "outside_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "return_water_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "gas_boiler_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "refrigerant_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "actual_room_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "external_sensor_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "dhw_tank_target_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "dhw_setpoint_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "main_zone_target_temperature": {
+        "default": "mdi:temperature-celsius"
+      },
+      "add_zone_target_temperature": {
+        "default": "mdi:temperature-celsius"
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    },
+    "step": {
+      "user": {
+        "title": "Serial gateway setup",
+        "description": "Do you want to configure Home Assistant to connect to the Daikin P1/P2 bus provided by the add-on: {addon}?",
+        "data": {
+          "serial_port": "[%key:common::config_flow::data::usb_path%]",
+          "serial_port_baud": "Baud rate"
+        },
+        "data_description": {
+          "serial_port": "Serial port to access the P1/P2 bus",
+          "serial_port_baud": "Baud rate to open the serial port at"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "dhw_boiler_running": {
+        "name": "Domestic Hot Water Boiler running"
+      },
+      "compressor_running": {
+        "name": "Heat Pump Compressor running"
+      },
+      "main_pump_running": {
+        "name": "Main Circulation pump running"
+      },
+      "dhw_circulation_running": {
+        "name": "Domestic Hot Water Circulation pump running"
+      },
+      "gas_boiler_enabled": {
+        "name": "Gas boiler is enabled"
+      },
+      "dhw_tank_enabled": {
+        "name": "Domestic Hot Water tank is enabled"
+      },
+      "heating_enabled": {
+        "name": "System is permitted to heat"
+      },
+      "cooling_enabled": {
+        "name": "System is permitted to cool"
+      },
+      "dhw_zone_enabled" : {
+        "name": "DHW Zone Enabled"
+      }
+    },
+
+    "sensor": {
+      "lwt_temperature": {
+        "name": "Low Water Temperature"
+      },
+      "dhw_temperature": {
+        "name": "Domestic Hot Water Temperature"
+      },
+      "outside_temperature": {
+        "name": "Outside Temperature"
+      },
+      "return_water_temperature": {
+        "name": "Return Water Temperature"
+      },
+      "gas_boiler_temperature": {
+        "name": "Gas Boiler Temperature"
+      },
+      "refrigerant_temperature": {
+        "name": "Refrigerant Temperature"
+      },
+      "actual_room_temperature": {
+        "name": "Actual room Temperature"
+      },
+      "external_sensor_temperature": {
+        "name": "External Sensor Temperature"
+      },
+      "dhw_tank_target_temperature": {
+        "name": "Domestic Hot Water Target Temperature"
+      },
+      "dhw_setpoint_temperature": {
+        "name": "Domestic Hot Water SetPoint Temperature"
+      },
+      "main_zone_target_temperature": {
+        "name": "Main Zone Target Temperature"
+      },
+      "add_zone_target_temperature": {
+        "name": "Additional Zone Target Temperature"
+      }
+    }
+  }
+}

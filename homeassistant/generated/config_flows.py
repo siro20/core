@@ -130,6 +130,7 @@ FLOWS = {
         "crownstone",
         "cync",
         "daikin",
+        "daikin_p1p2bus",
         "datadog",
         "deako",
         "deconz",
