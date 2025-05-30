@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -40,18 +40,23 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
         )
         self._proto = P1P2Protocol(port, baud)
         self.device_info = DeviceInfo(
-            entry_type=DeviceEntryType.SERVICE,
             name=DEFAULT_DEVICE_NAME,
             manufacturer=MANUFACTURER,
             identifiers={(DOMAIN, config_entry.unique_id)},
         )
 
         self.last_update_success = False
-        _LOGGER.debug("Initialized Daikin P1/P2 coordinator on %s@%d baud", port, baud)
+        _LOGGER.debug(
+            "Initialized Daikin P1/P2 coordinator on %s@%d baud", port, baud)
 
     def proto(self) -> P1P2Protocol:
-        """Return the protocol"""
+        """Return the protocol."""
         return self._proto
+
+    @callback
+    def _on_model(self, name: str) -> None:
+        """Set model name."""
+        self.device_info["model"] = name
 
     async def _async_setup(self) -> None:
         """Perform async setup for the coordinator."""
@@ -60,6 +65,7 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
             await self._proto.connect(self.hass.loop)
         except OSError as ex:
             raise UpdateFailed from ex
+        self._proto.add_model_listener(self._on_model)
 
     async def _async_update_data(self) -> None:
         """Empty update method since data is pushed."""

@@ -10,12 +10,14 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfTemperature
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DaikinP1P2UpdateCoordinator
 from .entity import DaikinEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
@@ -119,15 +121,11 @@ async def async_setup_entry(
     )
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 class DaikinP1P2Sensor(DaikinEntity, SensorEntity):
     """Representation of a Daikin P1/P2 sensor."""
 
     _attr_should_poll = False
     _attr_has_entity_name = True
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self, entity_description, coordinator: DaikinP1P2UpdateCoordinator

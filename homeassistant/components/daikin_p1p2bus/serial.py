@@ -41,7 +41,7 @@ class P1P2SerialProtocol(asyncio.Protocol):
     @callback
     @abstractmethod
     def on_serial_line_received(self, line: str) -> None:
-        """Callback when a line was received over serial"""
+        """Callback for each line received over serial."""
 
     def data_received(self, data: bytes):
         """Call when data has been received over the serial port."""
@@ -84,20 +84,21 @@ class P1P2SerialProtocol(asyncio.Protocol):
     @callback
     @abstractmethod
     def on_connection_lost(self, exc: Exception | None) -> None:
-        """Callback when connection was lost"""
+        """Callback on connection lost."""
 
     @callback
     @abstractmethod
     def on_connection_established(self) -> None:
-        """Callback when connection was lost"""
+        """Callback on connection reestablished."""
 
     def write(self, data: bytes) -> None:
-        """Write to the P1/P2 serial gateway"""
+        """Write to the P1/P2 serial gateway."""
         if not self._running or self._transport is None:
             return
         if self._lock.locked():
             return
         self._transport.write(data)
+        self._transport.flush()
 
     def _connection_lost(self, exc: Exception | None):
         _LOGGER.debug("port closed")

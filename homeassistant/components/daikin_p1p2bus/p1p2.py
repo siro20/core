@@ -16,6 +16,8 @@ from construct import (
     Subconstruct,
 )
 
+from homeassistant.core import callback
+
 from .serial import P1P2SerialProtocol
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,7 +87,7 @@ class P1P2Paket:
         return self._h["type"]
 
     def request(self) -> bool:
-        """True for P1/P2 request packets."""
+        """Return true for P1/P2 request packets."""
         return self._h["request_response"] & 0x40 > 0
 
     def __str__(self):
@@ -212,10 +214,10 @@ class P1P2Base:
                         "dhw_active"
                         / Bitwise(
                             Struct(
-                                Padding(1),
+                                Padding(6),
                                 # 1 when DHW is heated by gas boiler
                                 "dhw_boiler_running" / BitsInteger(1),
-                                Padding(6),
+                                Padding(1),
                             )
                         ),
                         "trailer" / Struct("crc" / Int8ub),
@@ -448,8 +450,6 @@ class P1P2Base:
             except Exception as ex:
                 _LOGGER.warning(f"Exception {ex} when processing {buf.hex()}")
                 return None
-        else:
-            _LOGGER.debug("Ignoring packet %x", addr)
         return None
 
     def encode(self, answer: bool, address: int, type: int, payload: bytes) -> bytes:
@@ -478,9 +478,10 @@ class P1P2Protocol(P1P2SerialProtocol, P1P2Base):
         self._parameter35: dict[int, int] = {}
         self._model = ""
 
+    @callback
     def on_serial_line_received(self, line: str) -> None:
         """Callback when a line was received over serial"""
-        # _LOGGER.warning(line)
+
         # Parse ASCII hex data
         data = b""
         try:
@@ -488,25 +489,18 @@ class P1P2Protocol(P1P2SerialProtocol, P1P2Base):
         except Exception:
             return
 
-        # if data[2] == 0x35:
-        #    d = datetime.datetime.now()
-        #    if self._last_update != d.minute:
-        #        self._last_update = d.minute
-        #        offset = 0xffff
-        #        value = 0xff
-        #        self.write(b"\x40\xf0\x35" + offset.to_bytes(2,
-        #                                                     byteorder='little') + value.to_bytes(1) + b"\xff\xff\xff" + b"\xff\xff\xff" + b"\xff\xff\xff" + b"\xff\xff\xff" + b"\xff\xff\xff" + b"x\00")
-
         # Decode the packet
         res = self.decode(data)
         if res:
             self._dispatch(res)
 
+    @callback
     def on_connection_lost(self, exc: Exception | None) -> None:
         """Callback when connection was lost"""
         for con_listener in self._connection_listeners:
             con_listener(False)
 
+    @callback
     def on_connection_established(self) -> None:
         """Callback when connection was established"""
         for con_listener in self._connection_listeners:
@@ -530,9 +524,25 @@ class P1P2Protocol(P1P2SerialProtocol, P1P2Base):
 
             if off not in self._parameter35:
                 self._parameter35[off] = val
+                key = f"parameter35_{off}"
+                if key in self._setting_listeners:
+                    for listener in self._setting_listeners[key]:
+                        listener(key, val)
+                _LOGGER.warning(f"parameter35 {off} = {val}")
 
-            if self._parameter35[off] != val:
-                _LOGGER.info(f"parameter35 {off} = {val}")
+            if (
+                self._parameter35[off] != val
+                and off != 375
+                and off != 376
+                and off != 377
+            ):
+                self._parameter35[off] = val
+                key = f"parameter35_{off}"
+                if key in self._setting_listeners:
+                    for listener in self._setting_listeners[key]:
+                        listener(key, val)
+
+                _LOGGER.warning(f"parameter35 {off} = {val}")
 
         # Model name is stored somewhere in parameter35
         if self._model == "" and self.model() != "":
@@ -569,10 +579,51 @@ class P1P2Protocol(P1P2SerialProtocol, P1P2Base):
             return self._model_162()
         return self._model_13a()
 
+    def set_parameter(self, parameter: int, offset: int, value: int) -> None:
+        """Send a parameter to the serial gateway."""
+        packet = b"\x40\xf0"
+        if parameter <= 0x30 or parameter >= 0x3F:
+            raise AttributeError(f"parameter {parameter} out of range")
+        if offset < 0 or offset > 0xFFFF:
+            raise AttributeError(f"offset {offset} out of range")
+        if value < 0:
+            raise AttributeError(f"value {value} out of range")
+
+        packet += parameter.to_bytes(1)
+        packet += offset.to_bytes(2, byteorder="little")
+
+        if parameter in (0x35, 0x3A):
+            if value > 0xFF:
+                raise AttributeError(f"value {value} out of range")
+            packet += value.to_bytes(1)
+            packet += b"\xff" * 15
+        elif parameter in (0x36, 0x3B):
+            if value > 0xFFFF:
+                raise AttributeError(f"value {value} out of range")
+            packet += value.to_bytes(2, byteorder="little")
+            packet += b"\xff" * 16
+        elif parameter in (0x37, 0x3C):
+            if value > 0xFFFFFF:
+                raise AttributeError(f"value {value} out of range")
+            packet += value.to_bytes(3, byteorder="little")
+            packet += b"\xff" * 15
+        elif parameter in (0x38, 0x39, 0x3D):
+            if value > 0xFFFFFFFF:
+                raise AttributeError(f"value {value} out of range")
+            packet += value.to_bytes(4, byteorder="little")
+            packet += b"\xff" * 12
+        else:
+            raise AttributeError(f"parameter {parameter} not supported")
+
+        packet += P1P2Base._calculate_crc(packet).to_bytes(1)
+        line = f"{packet.hex()}\r\n"
+
+        self.write(line.encode())
+
     def _dispatch(self, pkt: P1P2Paket) -> None:
         if pkt.type() == 0x35:
             self._handle_parameter35(pkt)
-        # _LOGGER.warning(pkt)
+
         for key in pkt.payload():
             value = pkt.payload()[key]
             if key not in self._setting_listeners:

@@ -8,7 +8,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -123,7 +122,6 @@ class DaikinP1P2BinarySensor(DaikinEntity, BinarySensorEntity):
 
     _attr_should_poll = False
     _attr_has_entity_name = True
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self, entity_description, coordinator: DaikinP1P2UpdateCoordinator

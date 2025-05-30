@@ -6,10 +6,10 @@ from abc import abstractmethod
 
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
-from homeassistant.helpers import device_registry as dr, entity
+from homeassistant.helpers import entity
 from homeassistant.util.dt import utcnow
 
-from .const import DOMAIN, MANUFACTURER, MIN_TIME_BETWEEN_UPDATES
+from .const import MIN_TIME_BETWEEN_UPDATES
 from .coordinator import DaikinP1P2UpdateCoordinator
 
 
@@ -30,7 +30,6 @@ class DaikinEntity(entity.Entity):
         self._attr_device_info = coordinator.device_info
         self._min_time = MIN_TIME_BETWEEN_UPDATES
         self._last_update = utcnow()
-        self._model = ""
         self._attr_unique_id = (
             f"{coordinator.config_entry.entry_id}_{entity_description.key}"
         )
@@ -39,15 +38,6 @@ class DaikinEntity(entity.Entity):
     def device_id(self) -> str:
         """Return device_id."""
         return self.entity_description.key
-
-    @property
-    def device_info(self) -> dr.DeviceInfo:
-        """Return the device info."""
-        return dr.DeviceInfo(
-            identifiers={(DOMAIN, self.entity_description.key)},
-            manufacturer=MANUFACTURER,
-            model=self._model,
-        )
 
     @callback
     @abstractmethod
@@ -71,18 +61,12 @@ class DaikinEntity(entity.Entity):
         """Notify HA about new connection state."""
         self.async_write_ha_state()
 
-    @callback
-    def _on_model(self, name: str) -> None:
-        """Set model name."""
-        self._model = name
-
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
         self._proto.add_settings_change_listener(
             self.entity_description.key, self._on_event
         )
         self._proto.add_connection_listener(self._on_connection)
-        self._proto.add_model_listener(self._on_model)
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
@@ -90,7 +74,6 @@ class DaikinEntity(entity.Entity):
             self.entity_description.key, self._on_event
         )
         self._proto.remove_connection_listener(self._on_connection)
-        self._proto.remove_model_listener(self._on_model)
 
     @property
     def available(self) -> bool:
