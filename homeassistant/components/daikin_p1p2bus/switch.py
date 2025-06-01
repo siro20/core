@@ -39,7 +39,7 @@ SWITCH_TYPES: tuple[DaikinP1P2SwitchEntityDescription, ...] = (
         translation_key="parameter35_123",
         name="parameter35_123",
         device_class=SwitchDeviceClass.SWITCH,
-    )
+    ),
 )
 
 

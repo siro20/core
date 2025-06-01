@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers import entity
 from homeassistant.util.dt import utcnow
@@ -19,7 +18,6 @@ class DaikinEntity(entity.Entity):
     _attr_should_poll = False
     _attr_has_entity_name = True
     _attr_available = False
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self, entity_description, coordinator: DaikinP1P2UpdateCoordinator

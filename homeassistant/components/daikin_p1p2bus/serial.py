@@ -1,4 +1,6 @@
 from abc import abstractmethod
+from collections.abc import Callable
+
 import asyncio
 import logging
 import time
@@ -29,6 +31,7 @@ class P1P2SerialProtocol(asyncio.Protocol):
         self._timeout_delay = wait_time
         self._watchdog: asyncio.Task[Any] = None
         self._baud = baud
+        self._connection_listeners: list[Callable[[bool], None]] = []
 
     async def _resume_reading(self, delay):
         await asyncio.sleep(delay)
@@ -42,6 +45,15 @@ class P1P2SerialProtocol(asyncio.Protocol):
     @abstractmethod
     def on_serial_line_received(self, line: str) -> None:
         """Callback for each line received over serial."""
+
+    def add_connection_listener(self, listener: Callable[[bool], None]) -> None:
+        """Register a callback handler that is invoked when connection changes."""
+        self._connection_listeners.append(listener)
+        listener(self.connected())
+
+    def remove_connection_listener(self, listener: Callable[[bool], None]) -> None:
+        """Unregister a previously registered connection callback handler."""
+        self._connection_listeners.remove(listener)
 
     def data_received(self, data: bytes):
         """Call when data has been received over the serial port."""
@@ -61,7 +73,7 @@ class P1P2SerialProtocol(asyncio.Protocol):
                 # When a line hasn't fully been received opt out
                 continue
             # Pop from bytes buffer
-            self._buf = self._buf[len(line) :]
+            self._buf = self._buf[len(line):]
 
             # Get rid of newlines
             line = line.replace("\r", "").replace("\n", "")
@@ -103,6 +115,9 @@ class P1P2SerialProtocol(asyncio.Protocol):
     def _connection_lost(self, exc: Exception | None):
         _LOGGER.debug("port closed")
         self.on_connection_lost(exc)
+        for con_listener in self._connection_listeners:
+            con_listener(False)
+
         self._transport = None
         if self._running and not self._lock.locked():
             asyncio.ensure_future(self._reconnect(), loop=self._loop)
@@ -136,6 +151,8 @@ class P1P2SerialProtocol(asyncio.Protocol):
                     self._last_update = time.time()
                     self._watchdog = asyncio.create_task(self._timeout())
                 self.on_connection_established()
+                for con_listener in self._connection_listeners:
+                    con_listener(True)
 
     async def connect(self, loop=None):
         """Connect to the serial device and start decoding received lines."""
@@ -160,6 +177,8 @@ class P1P2SerialProtocol(asyncio.Protocol):
             self._transport.abort()
             self._transport = None
         self.on_connection_lost(None)
+        for con_listener in self._connection_listeners:
+            con_listener(False)
 
     async def _timeout(self):
         while True:
@@ -173,4 +192,5 @@ class P1P2SerialProtocol(asyncio.Protocol):
                 "Timeout while waiting for P1/P2 data. Please check gateway device"
             )
             self._connection_lost(TimeoutError())
+
             return
