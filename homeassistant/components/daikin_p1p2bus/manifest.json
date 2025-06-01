@@ -7,7 +7,7 @@
   "documentation": "https://www.home-assistant.io/integrations/daikin_p1p2",
   "integration_type": "hub",
   "iot_class": "local_push",
-  "loggers": ["p1p2"],
+  "loggers": ["p1p2", "p1p2_parameter", "p1p2_base"],
   "requirements": ["construct==2.10.70", "pyserial-asyncio-fast==0.16"],
   "version": "0.0.1"
 }

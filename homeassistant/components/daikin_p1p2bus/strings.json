@@ -38,18 +38,33 @@
       "dhw_tank_enabled": {
         "name": "Domestic Hot Water tank is enabled"
       },
-      "heating_enabled": {
+      "heating_zone_enabled": {
         "name": "System is permitted to heat"
       },
-      "cooling_enabled": {
+      "cooling_zone_enabled": {
         "name": "System is permitted to cool"
       },
       "dhw_zone_enabled" : {
-        "name": "DHW Zone Enabled"
+        "name": "DHW zone Enabled"
+      },
+      "additional_zone_enabled": {
+        "name": "Additional heating zone Enabled"
       }
     },
 
     "sensor": {
+      "energy_compressor_heating": {
+        "name": "Compressor energy spent for heating"
+      },
+      "energy_compressor_cooling": {
+        "name": "Compressor energy spent for cooling"
+      },
+      "energy_compressor_dhw": {
+        "name": "Compressor energy spent for DHW"
+      },
+      "energy_compressor_total": {
+        "name": "Compressor energy spent total"
+      },
       "lwt_temperature": {
         "name": "Low Water Temperature"
       },

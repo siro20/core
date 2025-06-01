@@ -51,6 +51,18 @@
       }
     },
     "sensor": {
+      "energy_compressor_heating": {
+        "default": "mdi:meter-electric"
+      },
+      "energy_compressor_cooling": {
+        "default": "mdi:meter-electric"
+      },
+      "energy_compressor_dhw": {
+        "default": "mdi:meter-electric"
+      },
+      "energy_compressor_total": {
+        "default": "mdi:meter-electric"
+      },
       "lwt_temperature": {
         "default": "mdi:temperature-celsius"
       },

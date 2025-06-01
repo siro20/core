@@ -1,10 +1,10 @@
 """Support for Daikin P1/P2 bus parameter control."""
 
 from __future__ import annotations
-from typing import Any
 
 from dataclasses import dataclass
 import logging
+from typing import Any
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,

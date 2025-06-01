@@ -1,11 +1,11 @@
-from .p1p2_base import P1P2Base, P1P2Packet
 from abc import abstractmethod
-from typing import Any
-
 from collections.abc import Callable
 import logging
+from typing import Any
 
 from homeassistant.core import callback
+
+from .p1p2_base import P1P2Base, P1P2Packet
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.addHandler(logging.NullHandler())
@@ -43,7 +43,7 @@ class P1P2ParameterProtocol(P1P2Base):
     def on_parameter_packet_received(self, pkt: P1P2Packet) -> None:
         """Cache parameters as only 6 at maximum are exchanged per packet."""
         assert pkt.type() >= 0x32 and pkt.type() < 0x40
-        if not pkt.type() in self._parameter:
+        if pkt.type() not in self._parameter:
             self._parameter[pkt.type()] = {}
 
         for i in ("0", "1", "2", "3", "4", "5"):
@@ -149,11 +149,11 @@ class P1P2ParameterProtocol(P1P2Base):
         else:
             raise AttributeError(f"parameter {parameter} not supported")
 
-        packet = P1P2Base.encode(True, 0xf0, parameter, packet)
+        packet = P1P2Base.encode(True, 0xF0, parameter, packet)
         line = f"{packet.hex()}\r\n"
         self.write(line.encode())
 
-        if not parameter in self._parameter:
+        if parameter not in self._parameter:
             self._parameter[parameter] = {}
 
         self._parameter[parameter][offset] = value

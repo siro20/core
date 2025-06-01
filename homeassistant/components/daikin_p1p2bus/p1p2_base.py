@@ -1,4 +1,7 @@
 from abc import abstractmethod
+from collections import OrderedDict
+from collections.abc import Callable
+import logging
 
 from construct import (
     BitsInteger,
@@ -13,11 +16,9 @@ from construct import (
     Struct,
     Subconstruct,
 )
-from collections import OrderedDict
-from collections.abc import Callable
-import logging
 
 from homeassistant.core import callback
+
 from .serial import P1P2SerialProtocol
 
 _LOGGER = logging.getLogger(__name__)
@@ -422,7 +423,7 @@ class P1P2Base(P1P2SerialProtocol):
         return crc & 0xFF
 
     @staticmethod
-    def parse(s: Struct, data: bytes) -> (P1P2Packet | None):
+    def parse(s: Struct, data: bytes) -> P1P2Packet | None:
         """Parse the bytes by using construct.Struct."""
         if len(data) <= 3:
             raise ValueError("Packet too small")
@@ -461,7 +462,7 @@ class P1P2Base(P1P2SerialProtocol):
 
     @staticmethod
     def encode(answer: bool, address: int, type: int, payload: bytes) -> bytes:
-        """Encode a paket and calculate the CRC."""
+        """Encode a packet and calculate the CRC."""
         buf = b""
         buf += b"\x40" if answer else b"\x00"
         buf += address.to_bytes(1)
@@ -476,7 +477,7 @@ class P1P2Base(P1P2SerialProtocol):
     def on_packet_received(self, pkt: P1P2Packet) -> None:
         """Callback for each known packet received over serial."""
 
-    def decode(self, buf: bytes) -> (P1P2Packet | None):
+    def decode(self, buf: bytes) -> P1P2Packet | None:
         """Decode the bytes object into a P1P2Packet when it's supported."""
         # Every packet has at least 3 bytes
         if len(buf) <= 3:

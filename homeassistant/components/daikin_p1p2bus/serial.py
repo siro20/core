@@ -1,7 +1,6 @@
 from abc import abstractmethod
-from collections.abc import Callable
-
 import asyncio
+from collections.abc import Callable
 import logging
 import time
 from typing import Any
@@ -73,7 +72,7 @@ class P1P2SerialProtocol(asyncio.Protocol):
                 # When a line hasn't fully been received opt out
                 continue
             # Pop from bytes buffer
-            self._buf = self._buf[len(line):]
+            self._buf = self._buf[len(line) :]
 
             # Get rid of newlines
             line = line.replace("\r", "").replace("\n", "")
