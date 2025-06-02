@@ -33,11 +33,19 @@ SWITCH_TYPES: tuple[DaikinP1P2SwitchEntityDescription, ...] = (
     # DHW pump manual control
     # Works on EJHAxxxxxx
     DaikinP1P2SwitchEntityDescription(
-        key="parameter35_123",
+        key="parameter0x35_123",
         parameter=0x35,
         offset=123,
-        translation_key="parameter35_123",
-        name="parameter35_123",
+        translation_key="parameter0x35_123",
+        name="parameter0x35_123",
+        device_class=SwitchDeviceClass.SWITCH,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_124",
+        parameter=0x35,
+        offset=124,
+        translation_key="parameter0x35_124",
+        name="parameter0x35_124",
         device_class=SwitchDeviceClass.SWITCH,
     ),
 )

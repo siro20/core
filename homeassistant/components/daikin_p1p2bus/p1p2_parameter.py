@@ -65,7 +65,7 @@ class P1P2ParameterProtocol(P1P2Base):
                 self._parameter[pkt.type()][off] = val
                 self.on_setting_changed(key, val)
 
-                _LOGGER.info(f"{key} = {val}")
+                _LOGGER.debug(f"{key} = {val}")
 
             if (
                 self._parameter[pkt.type()][off] != val
@@ -76,7 +76,7 @@ class P1P2ParameterProtocol(P1P2Base):
                 self._parameter[pkt.type()][off] = val
                 self.on_setting_changed(key, val)
 
-                _LOGGER.info(f"{key} = {val}")
+                _LOGGER.debug(f"{key} = {val}")
 
         # Model name is stored somewhere in parameter35
         if pkt.type() == 0x35 and self._model == "" and self.model() != "":
@@ -123,7 +123,6 @@ class P1P2ParameterProtocol(P1P2Base):
         if value < 0:
             raise AttributeError(f"value {value} out of range")
 
-        packet += parameter.to_bytes(1)
         packet += offset.to_bytes(2, byteorder="little")
 
         if parameter in (0x35, 0x3A):
@@ -152,10 +151,12 @@ class P1P2ParameterProtocol(P1P2Base):
         packet = P1P2Base.encode(True, 0xF0, parameter, packet)
         line = f"{packet.hex()}\r\n"
         self.write(line.encode())
+        _LOGGER.debug(f"sending {line}")
 
         if parameter not in self._parameter:
             self._parameter[parameter] = {}
-
+        # NOT calling on_setting_changed since it would
+        # call async_write_ha_state from separate thread!
         self._parameter[parameter][offset] = value
 
     def add_model_listener(self, listener: Callable[[str], None]) -> None:

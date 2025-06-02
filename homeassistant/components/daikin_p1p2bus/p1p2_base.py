@@ -470,7 +470,8 @@ class P1P2Base(P1P2SerialProtocol):
         buf += payload
 
         crc = P1P2Base._calculate_crc(buf)
-        buf += crc
+        buf += crc.to_bytes(1)
+        return buf
 
     @callback
     @abstractmethod
