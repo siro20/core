@@ -14,8 +14,10 @@ _LOGGER.addHandler(logging.NullHandler())
 class P1P2ParameterProtocol(P1P2Base):
     """Low level functions of the P1P2 decoder."""
 
-    def __init__(self, url, baud=112500, **kwargs) -> None:
-        P1P2Base.__init__(self, url, baud, **kwargs)
+    def __init__(
+        self, url, allow_writes=False, baud=112500, debug=False, **kwargs
+    ) -> None:
+        P1P2Base.__init__(self, url, allow_writes, baud, debug, **kwargs)
         self._parameter: dict[int, dict[int, int]] = {}
         self._model_listeners: list[Callable[[str], None]] = []
         self._model: str = ""
@@ -65,18 +67,15 @@ class P1P2ParameterProtocol(P1P2Base):
                 self._parameter[pkt.type()][off] = val
                 self.on_setting_changed(key, val)
 
-                _LOGGER.debug(f"{key} = {val}")
+                if self._debug:
+                    _LOGGER.debug(f"{key} = {val}")
 
-            if (
-                self._parameter[pkt.type()][off] != val
-                and off != 375
-                and off != 376
-                and off != 377
-            ):
+            if self._parameter[pkt.type()][off] != val:
                 self._parameter[pkt.type()][off] = val
                 self.on_setting_changed(key, val)
 
-                _LOGGER.debug(f"{key} = {val}")
+                if self._debug:
+                    _LOGGER.debug(f"{key} = {val}")
 
         # Model name is stored somewhere in parameter35
         if pkt.type() == 0x35 and self._model == "" and self.model() != "":
@@ -148,10 +147,7 @@ class P1P2ParameterProtocol(P1P2Base):
         else:
             raise AttributeError(f"parameter {parameter} not supported")
 
-        packet = P1P2Base.encode(True, 0xF0, parameter, packet)
-        line = f"{packet.hex()}\r\n"
-        self.write(line.encode())
-        _LOGGER.debug(f"sending {line}")
+        self.transmit(True, 0xF0, parameter, packet)
 
         if parameter not in self._parameter:
             self._parameter[parameter] = {}

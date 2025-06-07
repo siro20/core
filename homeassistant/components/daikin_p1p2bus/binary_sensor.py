@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -12,93 +14,117 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DaikinP1P2UpdateCoordinator
-from .entity import DaikinEntity
+from .entity import DaikinEntity, DaikinP1P2EntityDescription
 
-BINARY_SENSOR_TYPES: tuple[BinarySensorEntityDescription, ...] = (
-    BinarySensorEntityDescription(
+
+@dataclass(frozen=True, kw_only=True)
+class DaikinP1P2BinarySensorEntityDescription(
+    DaikinP1P2EntityDescription, BinarySensorEntityDescription
+):
+    """Describes Daikin P1P2 binary sensor entity."""
+
+
+BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
+    DaikinP1P2BinarySensorEntityDescription(
         key="compressor_running",
         name="compressor_running",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="compressor_running",
+        is_compressor=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="main_pump_running",
         name="main_pump_running",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="main_pump_running",
+        is_control_unit=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="dhw_boiler_running",
         name="dhw_boiler_running",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="dhw_boiler_running",
+        is_dhw=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="dhw_circulation_running",
         name="dhw_circulation_running",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="dhw_circulation_running",
+        is_dhw=True,
     ),
     # If enabled system may use gas boiler
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="gas_boiler_enabled",
         name="gas_boiler_enabled",
         device_class=BinarySensorDeviceClass.POWER,
         translation_key="gas_boiler_enabled",
+        is_boiler=True,
     ),
     # If enabled system may heat DHW tank
     # Can be disabled on user schedule or manually
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="dhw_tank_enabled",
         name="dhw_tank_enabled",
         device_class=BinarySensorDeviceClass.POWER,
         translation_key="dhw_tank_enabled",
+        is_dhw=True,
     ),
     # If enabled system may heat MainZone or AdditionalZone
     # Can be disabled on user schedule or manually
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="heating_enabled",
         name="heating_enabled",
         device_class=BinarySensorDeviceClass.POWER,
         translation_key="heating_enabled",
+        is_control_unit=True,
     ),
     # If enabled system may cool MainZone or AdditionalZone
     # Can be disabled on user schedule, manually or system
     # might not have cooling capabilities.
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="cooling_enabled",
         name="cooling_enabled",
         device_class=BinarySensorDeviceClass.POWER,
         translation_key="cooling_enabled",
+        requires_cooling_cap=True,
+        is_control_unit=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="heating_zone_enabled",
         name="heating_zone_enabled",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="heating_zone_enabled",
+        is_control_unit=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="cooling_zone_enabled",
         name="cooling_zone_enabled",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="cooling_zone_enabled",
+        requires_cooling_cap=True,
+        is_control_unit=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="main_zone_enabled",
         name="main_zone_enabled",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="main_zone_enabled",
+        is_control_unit=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="additional_zone_enabled",
         name="additional_zone_enabled",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="additional_zone_enabled",
+        is_additonal_zone=True,
+        is_control_unit=True,
     ),
-    BinarySensorEntityDescription(
+    DaikinP1P2BinarySensorEntityDescription(
         key="dhw_zone_enabled",
         name="dhw_zone_enabled",
         translation_key="dhw_zone_enabled",
+        is_control_unit=True,
     ),
 )
 
@@ -111,8 +137,9 @@ async def async_setup_entry(
     """Set up sensors."""
 
     coordinator = config_entry.runtime_data
+
     async_add_entities(
-        DaikinP1P2BinarySensor(entity_description, coordinator)
+        DaikinP1P2BinarySensor(entity_description, coordinator, config_entry)
         for entity_description in BINARY_SENSOR_TYPES
     )
 
@@ -123,11 +150,16 @@ class DaikinP1P2BinarySensor(DaikinEntity, BinarySensorEntity):
     _attr_should_poll = False
     _attr_has_entity_name = True
 
+    entity_description: DaikinP1P2BinarySensorEntityDescription
+
     def __init__(
-        self, entity_description, coordinator: DaikinP1P2UpdateCoordinator
+        self,
+        entity_description,
+        coordinator: DaikinP1P2UpdateCoordinator,
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize a Daikin P1P2 Entity."""
-        DaikinEntity.__init__(self, entity_description, coordinator)
+        DaikinEntity.__init__(self, entity_description, coordinator, config_entry)
 
     def _on_settings_change_event(self, key: str, new_value) -> bool:
         """Update attributes from last received message for this object."""

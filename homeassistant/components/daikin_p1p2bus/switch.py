@@ -16,13 +16,15 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DaikinP1P2UpdateCoordinator
-from .entity import DaikinEntity
+from .entity import DaikinEntity, DaikinP1P2EntityDescription
 
 _LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, kw_only=True)
-class DaikinP1P2SwitchEntityDescription(SwitchEntityDescription):
+class DaikinP1P2SwitchEntityDescription(
+    DaikinP1P2EntityDescription, SwitchEntityDescription
+):
     """Describes Daikin P1P2 switch entity."""
 
     parameter: int
@@ -39,6 +41,7 @@ SWITCH_TYPES: tuple[DaikinP1P2SwitchEntityDescription, ...] = (
         translation_key="parameter0x35_123",
         name="parameter0x35_123",
         device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
     ),
     DaikinP1P2SwitchEntityDescription(
         key="parameter0x35_124",
@@ -47,6 +50,7 @@ SWITCH_TYPES: tuple[DaikinP1P2SwitchEntityDescription, ...] = (
         translation_key="parameter0x35_124",
         name="parameter0x35_124",
         device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
     ),
 )
 
@@ -59,10 +63,11 @@ async def async_setup_entry(
     """Set up switches."""
 
     coordinator = config_entry.runtime_data
-    async_add_entities(
-        DaikinP1P2Switch(entity_description, coordinator)
-        for entity_description in SWITCH_TYPES
-    )
+    if coordinator.allow_writes():
+        async_add_entities(
+            DaikinP1P2Switch(entity_description, coordinator, config_entry)
+            for entity_description in SWITCH_TYPES
+        )
 
 
 class DaikinP1P2Switch(DaikinEntity, SwitchEntity):
@@ -71,10 +76,13 @@ class DaikinP1P2Switch(DaikinEntity, SwitchEntity):
     entity_description: DaikinP1P2SwitchEntityDescription
 
     def __init__(
-        self, entity_description, coordinator: DaikinP1P2UpdateCoordinator
+        self,
+        entity_description,
+        coordinator: DaikinP1P2UpdateCoordinator,
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize a Daikin P1P2 Entity."""
-        DaikinEntity.__init__(self, entity_description, coordinator)
+        DaikinEntity.__init__(self, entity_description, coordinator, config_entry)
 
     @callback
     def _on_settings_change_event(self, key: str, new_value) -> bool:

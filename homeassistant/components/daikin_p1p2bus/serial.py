@@ -57,7 +57,8 @@ class P1P2SerialProtocol(asyncio.Protocol):
     def data_received(self, data: bytes):
         """Call when data has been received over the serial port."""
         self._buf += data
-        delay = 0.05
+        # P1/P2 runs at 9600 baud. About 1 byte per msec.
+        delay = 0.005
         self._last_update = time.time()
         lines = str(self._buf, "utf-8")
 
@@ -77,19 +78,14 @@ class P1P2SerialProtocol(asyncio.Protocol):
             # Get rid of newlines
             line = line.replace("\r", "").replace("\n", "")
 
-            # Drop comments
-            if ";" in line:
-                line = line.split(";")[0]
-            if "#" in line:
-                line = line.split("#")[0]
-
             # Nothing to do for empty lines
             if line == "":
                 continue
 
             self.on_serial_line_received(line)
 
-        delay = 0.1
+        # Average delay between two packets is 30msec
+        delay = 0.030
         self._delay_reading(delay)
 
     @callback
@@ -108,6 +104,7 @@ class P1P2SerialProtocol(asyncio.Protocol):
             return
         if self._lock.locked():
             return
+        _LOGGER.error(f"sending {data!s}")
         self._transport.write(data)
         self._transport.flush()
 
@@ -167,7 +164,7 @@ class P1P2SerialProtocol(asyncio.Protocol):
 
     def connected(self):
         """Return state if currently connected."""
-        return self._running and self._transport
+        return self._running and self._transport is not None
 
     async def _disconnect(self):
         if self._watchdog and not self._watchdog.done():

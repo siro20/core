@@ -1,0 +1,155 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    },
+    "step": {
+      "user": {
+        "title": "Einrichtung serielles gateway",
+        "description": "Möchten Sie Home Assistant konfigurieren um das Daikin P1/P2 Gateway zu konfigurieren?",
+        "data": {
+          "serial_port": "[%key:common::config_flow::data::usb_path%]",
+          "serial_port_baud": "Baud rate",
+          "gateway_supports_tx": "Gateway unterstützt Senden",
+          "system_has_dhw": "Das System hat einen DHW Tank",
+          "system_has_gas_boiler": "Das System hat einen Gas-Brenner",
+          "system_has_additional_zone": "Das System hat eine zusätzliche Zone",
+          "system_supports_cooling": "Das System kann kühlen",
+          "system_has_backup_heater": "Das System hat eine Backup Heizung."
+        },
+        "data_description": {
+          "serial_port": "Serieller Port das P1/P2 Gateway.",
+          "serial_port_baud": "Baudrate des seriellen Port (nicht P1/P2 Bus).",
+          "gateway_supports_tx": "Deaktivieren wenn das Serial Gateway nur beobachten kann.",
+          "system_has_dhw": "Deaktivieren wenn kein DHW Tank vorhanden ist.",
+          "system_has_gas_boiler": "Deaktivieren wenn kein Gas-Brenner vorhanden ist.",
+          "system_has_additional_zone": "Deaktivieren wenn keine zusätzliche Zone vorhanden ist.",
+          "system_supports_cooling": "Deaktivieren wenn nur heizen unterstützt wird.",
+          "system_has_backup_heater": "Deaktivieren wenn keine Backupheizung vorhanden ist."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Einrichtung Daikin System",
+        "data": {
+          "poll_energy_stats": "Energiestatistiken abrufen",
+          "p1p2_debug": "Erweiterete P1/P2 Log Nachrichten"
+        },
+        "data_description": {
+          "poll_energy_stats": "0xb8 Pakete senden um Energiestatistiken periodisch abzurufen."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "dhw_boiler_running": {
+        "name": "DHW wird vom Gas Boiler erhitzt"
+      },
+      "compressor_running": {
+        "name": "Kompressor läuft"
+      },
+      "main_pump_running": {
+        "name": "Zirkulationspumpe läuft"
+      },
+      "dhw_circulation_running": {
+        "name": "Heißwassertank Pumpe"
+      },
+      "gas_boiler_enabled": {
+        "name": "Gas Brenner eingeschaltet"
+      },
+      "dhw_tank_enabled": {
+        "name": "DHW darf beheizt werden"
+      },
+      "heating_zone_enabled": {
+        "name": "System darf heizen"
+      },
+      "cooling_zone_enabled": {
+        "name": "System darf kühlen"
+      },
+      "dhw_zone_enabled" : {
+        "name": "Wassertank darf beheizt werden"
+      },
+      "additional_zone_enabled": {
+        "name": "Zusatz-Heizzone darf beheizt werden"
+      },
+      "main_zone_enabled": {
+        "name": "Haupt-Heizzone darf beheizt werden"
+      }
+    },
+    "sensor": {
+      "gas_usage_total": {
+        "name": "Verbrauch Gesamt"
+      },
+      "number_of_boiler_start": {
+        "name": "Boilerstarts"
+      },
+      "gas_usage_heating": {
+        "name": "Verbrauch Heizen"
+      },
+      "gas_boiler_operation_hours_dhw": {
+        "name": "Stunden DHW beheizt"
+      },
+      "gas_boiler_operation_hours_heating": {
+        "name": "Stunden Heizung beheizt"
+      },
+      "backup_heater_for_heating": {
+        "name": "Energieverbrauch Heizen"
+      },
+      "backup_heater_for_dhw": {
+        "name": "Energieverbrauch DHW"
+      },
+      "compressor_for_heating": {
+        "name": "Energieverbrauch Heizen"
+      },
+      "compressor_for_cooling": {
+        "name": "Energieverbrauch Kühlen"
+      },
+      "compressor_for_dhw": {
+        "name": "Energieverbrauch Heißwasser"
+      },
+      "total_energy_used": {
+        "name": "Energieverbrauch Gesamt"
+      },
+      "lwt_temperature": {
+        "name": "LWT Temperatur"
+      },
+      "dhw_temperature": {
+        "name": "Ist-Temperatur"
+      },
+      "outside_temperature": {
+        "name": "Außentemperatur"
+      },
+      "return_water_temperature": {
+        "name": "RWT Temperatur"
+      },
+      "gas_boiler_temperature": {
+        "name": "Gas Boiler Temperatur"
+      },
+      "refrigerant_temperature": {
+        "name": "Kühlmittel Temperatur"
+      },
+      "actual_room_temperature": {
+        "name": "Bedienfeldtemperatur"
+      },
+      "external_sensor_temperature": {
+        "name": "Außensensor Temperatur"
+      },
+      "dhw_tank_target_temperature": {
+        "name": "Ziel-Temperatur"
+      },
+      "dhw_setpoint_temperature": {
+        "name": "Regelpunkt Temperatur"
+      },
+      "main_zone_target_temperature": {
+        "name": "Hauptzone Ziel-Temperatur"
+      },
+      "add_zone_target_temperature": {
+        "name": "Zusatzzone Ziel-Temperatur"
+      }
+    }
+  }
+}

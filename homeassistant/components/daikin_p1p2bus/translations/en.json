@@ -1,0 +1,132 @@
+{
+    "config": {
+        "abort": {
+          "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+        },
+        "step": {
+          "user": {
+            "title": "Serial gateway setup",
+            "description": "Do you want to configure Home Assistant to connect to the Daikin P1/P2 bus?",
+            "data": {
+              "serial_port": "[%key:common::config_flow::data::usb_path%]",
+              "serial_port_baud": "Baud rate",
+              "gateway_supports_tx": "Gateway supports transmission",
+              "system_has_dhw": "System has a DHW tank",
+              "system_has_gas_boiler": "System has a gas boiler",
+              "system_has_additional_zone": "System has an additional zone",
+              "system_supports_cooling": "System supports cooling",
+              "system_has_backup_heater": "System has a backup heater."
+
+            },
+            "data_description": {
+              "serial_port": "Serial port to access the P1/P2 bus",
+              "serial_port_baud": "Baud rate to open the serial port at",
+              "gateway_supports_tx": "Send packets to P1/P2 for advanced sensor reporting",
+              "system_has_dhw": "Disable when no DHW is present.",
+              "system_has_gas_boiler": "Disable when no gas boiler is present.",
+              "system_has_additional_zone": "Disable when no additional zone is present.",
+              "system_supports_cooling": "Disable when system can heat only.",
+              "system_has_backup_heater": "Disable when system has no backup heater."
+            }
+          }
+        }
+      },
+      "options": {
+        "step": {
+          "init": {
+            "title": "Daiking platform setup",
+            "data": {
+              "poll_energy_stats": "Poll energy statistics",
+              "p1p2_debug": "Enable P1/P2 bus debugging"
+            },
+            "data_description": {
+              "poll_energy_stats": "Periodically send packet 0xb8 to poll energy statistics"
+            }
+          }
+        }
+      },
+    "entity": {
+        "binary_sensor": {
+            "additional_zone_enabled": {
+                "name": "Additional heating zone Enabled"
+            },
+            "compressor_running": {
+                "name": "Heat Pump Compressor running"
+            },
+            "cooling_zone_enabled": {
+                "name": "System is permitted to cool"
+            },
+            "dhw_boiler_running": {
+                "name": "Domestic Hot Water Boiler running"
+            },
+            "dhw_circulation_running": {
+                "name": "Domestic Hot Water Circulation pump running"
+            },
+            "dhw_tank_enabled": {
+                "name": "Domestic Hot Water tank is enabled"
+            },
+            "dhw_zone_enabled": {
+                "name": "DHW zone Enabled"
+            },
+            "gas_boiler_enabled": {
+                "name": "Gas boiler is enabled"
+            },
+            "heating_zone_enabled": {
+                "name": "System is permitted to heat"
+            },
+            "main_pump_running": {
+                "name": "Main Circulation pump running"
+            }
+        },
+        "sensor": {
+            "actual_room_temperature": {
+                "name": "Actual room Temperature"
+            },
+            "add_zone_target_temperature": {
+                "name": "Additional Zone Target Temperature"
+            },
+            "dhw_setpoint_temperature": {
+                "name": "Domestic Hot Water SetPoint Temperature"
+            },
+            "dhw_tank_target_temperature": {
+                "name": "Domestic Hot Water Target Temperature"
+            },
+            "dhw_temperature": {
+                "name": "Domestic Hot Water Temperature"
+            },
+            "energy_compressor_cooling": {
+                "name": "Compressor energy spent for cooling"
+            },
+            "energy_compressor_dhw": {
+                "name": "Compressor energy spent for DHW"
+            },
+            "energy_compressor_heating": {
+                "name": "Compressor energy spent for heating"
+            },
+            "energy_compressor_total": {
+                "name": "Compressor energy spent total"
+            },
+            "external_sensor_temperature": {
+                "name": "External Sensor Temperature"
+            },
+            "gas_boiler_temperature": {
+                "name": "Gas Boiler Temperature"
+            },
+            "lwt_temperature": {
+                "name": "Low Water Temperature"
+            },
+            "main_zone_target_temperature": {
+                "name": "Main Zone Target Temperature"
+            },
+            "outside_temperature": {
+                "name": "Outside Temperature"
+            },
+            "refrigerant_temperature": {
+                "name": "Refrigerant Temperature"
+            },
+            "return_water_temperature": {
+                "name": "Return Water Temperature"
+            }
+        }
+    }
+}

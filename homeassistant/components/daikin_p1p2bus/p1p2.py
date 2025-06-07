@@ -14,8 +14,10 @@ _LOGGER.addHandler(logging.NullHandler())
 class P1P2Protocol(P1P2ParameterProtocol):
     """P1P2 protocol"""
 
-    def __init__(self, url, baud=112500, **kwargs) -> None:
-        P1P2ParameterProtocol.__init__(self, url, baud, **kwargs)
+    def __init__(
+        self, url, allow_writes=False, baud=112500, debug=False, **kwargs
+    ) -> None:
+        P1P2ParameterProtocol.__init__(self, url, allow_writes, baud, debug, **kwargs)
         self._setting_listeners: dict[str, list[Callable[[str, Any], None]]] = {}
 
     @callback

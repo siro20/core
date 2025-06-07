@@ -6,18 +6,44 @@
     "step": {
       "user": {
         "title": "Serial gateway setup",
-        "description": "Do you want to configure Home Assistant to connect to the Daikin P1/P2 bus provided by the add-on: {addon}?",
+        "description": "Do you want to configure Home Assistant to connect to the Daikin P1/P2 bus?",
         "data": {
           "serial_port": "[%key:common::config_flow::data::usb_path%]",
-          "serial_port_baud": "Baud rate"
+          "serial_port_baud": "Baud rate",
+          "gateway_supports_tx": "Gateway supports transmission",
+          "system_has_dhw": "System has a DHW tank",
+          "system_has_gas_boiler": "System has a gas boiler",
+          "system_has_additional_zone": "System has an additional zone",
+          "system_supports_cooling": "System supports cooling",
+          "system_has_backup_heater": "System has a backup heater."
         },
         "data_description": {
           "serial_port": "Serial port to access the P1/P2 bus",
-          "serial_port_baud": "Baud rate to open the serial port at"
+          "serial_port_baud": "Baud rate to open the serial port at",
+          "gateway_supports_tx": "Send packets to P1/P2 for advanced sensor reporting",
+          "system_has_dhw": "Disable when no DHW is present.",
+          "system_has_gas_boiler": "Disable when no gas boiler is present.",
+          "system_has_additional_zone": "Disable when no additional zone is present.",
+          "system_supports_cooling": "Disable when system can heat only.",
+          "system_has_backup_heater": "Disable when system has no backup heater."
         }
       }
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "poll_energy_stats": "Poll energy statistics",
+          "p1p2_debug": "Enable P1/P2 bus debugging"
+        },
+        "data_description": {
+          "poll_energy_stats": "Periodically send packet 0xb8 to poll energy statistics"
+        }
+      }
+    }
+  },
+
   "entity": {
     "binary_sensor": {
       "dhw_boiler_running": {
@@ -44,7 +70,7 @@
       "cooling_zone_enabled": {
         "name": "System is permitted to cool"
       },
-      "dhw_zone_enabled" : {
+      "dhw_zone_enabled": {
         "name": "DHW zone Enabled"
       },
       "additional_zone_enabled": {

@@ -50,18 +50,40 @@
         }
       }
     },
+
     "sensor": {
-      "energy_compressor_heating": {
+      "compressor_for_heating": {
         "default": "mdi:meter-electric"
       },
-      "energy_compressor_cooling": {
+      "compressor_for_cooling": {
         "default": "mdi:meter-electric"
       },
-      "energy_compressor_dhw": {
+      "compressor_for_dhw": {
         "default": "mdi:meter-electric"
       },
-      "energy_compressor_total": {
+      "total_energy_used": {
         "default": "mdi:meter-electric"
+      },
+      "backup_heater_for_heating": {
+        "default": "mdi:meter-electric"
+      },
+      "backup_heater_for_dhw": {
+        "default": "mdi:meter-electric"
+      },
+      "gas_usage_total": {
+        "default": "mdi:meter-gas"
+      },
+      "gas_boiler_operation_hours_dhw": {
+        "default": "mdi:meter-gas"
+      },
+      "gas_boiler_operation_hours_heating": {
+        "default": "mdi:meter-gas"
+      },
+      "gas_usage_heating": {
+        "default": "mdi:meter-gas"
+      },
+      "number_of_boiler_start": {
+        "default": "mdi:meter-gas"
       },
       "lwt_temperature": {
         "default": "mdi:temperature-celsius"
