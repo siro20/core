@@ -126,6 +126,13 @@ BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
         translation_key="dhw_zone_enabled",
         is_control_unit=True,
     ),
+    DaikinP1P2BinarySensorEntityDescription(
+        key="parameter0x35_9",
+        name="operation_mode_stay_warm",
+        translation_key="operation_mode_stay_warm",
+        is_control_unit=True,
+        is_ejha=True,
+    ),
 )
 
 

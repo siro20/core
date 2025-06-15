@@ -104,7 +104,7 @@ class P1P2SerialProtocol(asyncio.Protocol):
             return
         if self._lock.locked():
             return
-        _LOGGER.error(f"sending {data!s}")
+        _LOGGER.info(f"sending {data} to serial P1P2 gateway")
         self._transport.write(data)
         self._transport.flush()
 

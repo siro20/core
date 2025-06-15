@@ -23,6 +23,7 @@ from .const import (
     CONF_SYSTEM_HAS_BACKUP_HEATER,
     CONF_SYSTEM_HAS_DHW,
     CONF_SYSTEM_HAS_GAS_BOILER,
+    CONF_SYSTEM_IS_EJHA_COMPATIBLE,
     CONF_SYSTEM_SUPPORTS_COOLING,
     DEFAULT_TITLE,
     DOMAIN,
@@ -38,6 +39,7 @@ DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_SYSTEM_HAS_ADDITIONAL_ZONE, default=True): bool,
         vol.Required(CONF_SYSTEM_HAS_BACKUP_HEATER, default=True): bool,
         vol.Required(CONF_SYSTEM_SUPPORTS_COOLING, default=True): bool,
+        vol.Required(CONF_SYSTEM_IS_EJHA_COMPATIBLE, default=False): bool,
     }
 )
 CONFIG_FLOW = {
@@ -71,6 +73,9 @@ class DaikinP1P2ConfigFlow(ConfigFlow, domain=DOMAIN):
                     ],
                     CONF_SYSTEM_SUPPORTS_COOLING: user_input[
                         CONF_SYSTEM_SUPPORTS_COOLING
+                    ],
+                    CONF_SYSTEM_IS_EJHA_COMPATIBLE: user_input[
+                        CONF_SYSTEM_IS_EJHA_COMPATIBLE
                     ],
                 }
             )

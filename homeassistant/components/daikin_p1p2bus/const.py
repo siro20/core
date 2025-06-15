@@ -19,6 +19,7 @@ CONF_SYSTEM_HAS_GAS_BOILER = "system_has_gas_boiler"
 CONF_SYSTEM_HAS_ADDITIONAL_ZONE = "system_has_additional_zone"
 CONF_SYSTEM_HAS_BACKUP_HEATER = "system_has_backup_heater"
 CONF_SYSTEM_SUPPORTS_COOLING = "system_supports_cooling"
+CONF_SYSTEM_IS_EJHA_COMPATIBLE = "system_is_ejha"
 
 SIGNAL_DAIKIN_P1P2_TELEGRAM = "daikin_p1p2_telegram"
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)

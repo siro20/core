@@ -45,6 +45,31 @@
     }
   },
   "entity": {
+    "number": {
+      "parameter0x36_3": {
+        "name": "DHW Regeltemperatur Überschreibung"
+      }
+     },
+     "switch": {
+      "parameter0x35_123": {
+        "name": "parameter0x35_123 - DHW circulation pump test"
+      },
+      "parameter0x35_124": {
+        "name": "parameter0x35_124 - DHW circulation pump test"
+      },
+      "parameter0x35_67": {
+        "name": "parameter0x35_67 - DHW mode test"
+      },
+      "parameter0x35_68": {
+        "name": "parameter0x35_68 - DHW mode test"
+      },
+      "parameter0x35_69": {
+        "name": "parameter0x35_69 - DHW mode test"
+      },
+      "parameter0x35_70": {
+        "name": "parameter0x35_70 - DHW mode test"
+      }
+    },
     "binary_sensor": {
       "dhw_boiler_running": {
         "name": "DHW wird vom Gas Boiler erhitzt"

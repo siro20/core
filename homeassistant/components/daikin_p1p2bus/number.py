@@ -35,10 +35,10 @@ class DaikinP1P2SliderEntityDescription(
 NUMBER_TYPES: tuple[DaikinP1P2SliderEntityDescription, ...] = (
     # Does not activate the heating, just changes the DHW setpoint
     DaikinP1P2SliderEntityDescription(
-        key="dhw_setpoint_override",
-        translation_key="dhw_setpoint_override",
+        key="parameter0x36_3",
+        translation_key="parameter0x36_3",
         native_step=0.1,
-        native_min_value=40,
+        native_min_value=30,
         native_max_value=60,
         parameter=0x36,
         offset=3,

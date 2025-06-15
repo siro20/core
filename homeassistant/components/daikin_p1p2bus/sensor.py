@@ -42,6 +42,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
         is_compressor=True,
+        hysteresis=1,
     ),
     DaikinP1P2SensorEntityDescription(
         key="dhw_temperature",
@@ -50,6 +51,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
         is_dhw=True,
+        hysteresis=0.1,
     ),
     DaikinP1P2SensorEntityDescription(
         key="outside_temperature",
@@ -66,6 +68,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
         is_compressor=True,
+        hysteresis=1,
     ),
     DaikinP1P2SensorEntityDescription(
         key="gas_boiler_temperature",
@@ -74,6 +77,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
         is_boiler=True,
+        hysteresis=1,
     ),
     DaikinP1P2SensorEntityDescription(
         key="refrigerant_temperature",
@@ -82,6 +86,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
         is_compressor=True,
+        hysteresis=1,
     ),
     DaikinP1P2SensorEntityDescription(
         key="actual_room_temperature",
@@ -106,6 +111,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
         is_dhw=True,
+        hysteresis=0.1,
     ),
     DaikinP1P2SensorEntityDescription(
         key="dhw_setpoint_temperature",
@@ -114,6 +120,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
         is_dhw=True,
+        hysteresis=0.1,
     ),
     DaikinP1P2SensorEntityDescription(
         key="main_zone_target_temperature",
@@ -140,6 +147,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         requires_b8_packet_polling=True,
         is_compressor=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="compressor_for_cooling",
@@ -150,6 +158,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         requires_cooling_cap=True,
         requires_b8_packet_polling=True,
         is_compressor=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="compressor_for_dhw",
@@ -159,6 +168,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         requires_b8_packet_polling=True,
         is_compressor=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="total_energy_used",
@@ -168,6 +178,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         requires_b8_packet_polling=True,
         is_control_unit=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="gas_boiler_operation_hours_heating",
@@ -177,6 +188,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.HOURS,
         requires_b8_packet_polling=True,
         is_boiler=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="gas_boiler_operation_hours_dhw",
@@ -186,6 +198,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.HOURS,
         requires_b8_packet_polling=True,
         is_boiler=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="gas_usage_heating",
@@ -195,6 +208,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.VOLUME,
         requires_b8_packet_polling=True,
         is_boiler=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="number_of_boiler_start",
@@ -202,6 +216,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         requires_b8_packet_polling=True,
         is_boiler=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="gas_usage_total",
@@ -211,24 +226,27 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.VOLUME,
         requires_b8_packet_polling=True,
         is_boiler=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="backup_heater_for_heating",
         translation_key="backup_heater_for_heating",
         state_class=SensorStateClass.TOTAL_INCREASING,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.HOURS,
         requires_b8_packet_polling=True,
         is_backup_heater=True,
+        hysteresis=0,
     ),
     DaikinP1P2SensorEntityDescription(
         key="backup_heater_for_dhw",
         translation_key="backup_heater_for_dhw",
         state_class=SensorStateClass.TOTAL_INCREASING,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.HOURS,
         requires_b8_packet_polling=True,
         is_backup_heater=True,
+        hysteresis=0,
     ),
 )
 
@@ -263,8 +281,7 @@ class DaikinP1P2Sensor(DaikinEntity, SensorEntity):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize a Daikin P1P2 sensor."""
-        DaikinEntity.__init__(self, entity_description,
-                              coordinator, config_entry)
+        DaikinEntity.__init__(self, entity_description, coordinator, config_entry)
 
     @callback
     def _on_settings_change_event(self, key: str, new_value) -> bool:
@@ -276,8 +293,8 @@ class DaikinP1P2Sensor(DaikinEntity, SensorEntity):
 
         if isinstance(new_value, float) and isinstance(self._attr_native_value, float):
             if (
-                self._attr_native_value < new_value + 0.5
-                and self._attr_native_value > new_value - 0.5
+                self._attr_native_value < new_value + self._hysteresis
+                and self._attr_native_value > new_value - self._hysteresis
             ):
                 return False
         elif self._attr_native_value == new_value:

@@ -63,19 +63,22 @@ class P1P2ParameterProtocol(P1P2Base):
             val = int(pkt.payload()[value])
             key = f"parameter{hex(pkt.type())}_{off}"
 
+            if pkt.type() == 0x35 and (
+                off == 375 or off == 376 or off == 377 or off == 201
+            ):
+                return
+
             if off not in self._parameter[pkt.type()]:
                 self._parameter[pkt.type()][off] = val
                 self.on_setting_changed(key, val)
 
-                if self._debug:
-                    _LOGGER.debug(f"{key} = {val}")
+                _LOGGER.debug(f"{key} = {val}")
 
             if self._parameter[pkt.type()][off] != val:
                 self._parameter[pkt.type()][off] = val
                 self.on_setting_changed(key, val)
 
-                if self._debug:
-                    _LOGGER.debug(f"{key} = {val}")
+                _LOGGER.debug(f"{key} = {val}")
 
         # Model name is stored somewhere in parameter35
         if pkt.type() == 0x35 and self._model == "" and self.model() != "":
@@ -148,12 +151,6 @@ class P1P2ParameterProtocol(P1P2Base):
             raise AttributeError(f"parameter {parameter} not supported")
 
         self.transmit(True, 0xF0, parameter, packet)
-
-        if parameter not in self._parameter:
-            self._parameter[parameter] = {}
-        # NOT calling on_setting_changed since it would
-        # call async_write_ha_state from separate thread!
-        self._parameter[parameter][offset] = value
 
     def add_model_listener(self, listener: Callable[[str], None]) -> None:
         """Register a callback handler providing the model name."""

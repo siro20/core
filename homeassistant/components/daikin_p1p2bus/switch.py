@@ -42,6 +42,7 @@ SWITCH_TYPES: tuple[DaikinP1P2SwitchEntityDescription, ...] = (
         name="parameter0x35_123",
         device_class=SwitchDeviceClass.SWITCH,
         is_dhw=True,
+        is_ejha=True,
     ),
     DaikinP1P2SwitchEntityDescription(
         key="parameter0x35_124",
@@ -51,6 +52,165 @@ SWITCH_TYPES: tuple[DaikinP1P2SwitchEntityDescription, ...] = (
         name="parameter0x35_124",
         device_class=SwitchDeviceClass.SWITCH,
         is_dhw=True,
+        is_ejha=True,
+    ),
+    # FOR testing
+    # DHW comfort mode? enables gas boiler
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_67",
+        parameter=0x35,
+        offset=67,
+        translation_key="parameter0x35_67",
+        name="parameter0x35_67",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_68",
+        parameter=0x35,
+        offset=68,
+        translation_key="parameter0x35_68",
+        name="parameter0x35_68",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    # DHW eco mode?
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_69",
+        parameter=0x35,
+        offset=69,
+        translation_key="parameter0x35_69",
+        name="parameter0x35_69",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_70",
+        parameter=0x35,
+        offset=70,
+        translation_key="parameter0x35_70",
+        name="parameter0x35_70",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    # DHW ?
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_71",
+        parameter=0x35,
+        offset=71,
+        translation_key="parameter0x35_71",
+        name="parameter0x35_71",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_72",
+        parameter=0x35,
+        offset=72,
+        translation_key="parameter0x35_72",
+        name="parameter0x35_72",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    # gas boiler on? not writable
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_18",
+        parameter=0x35,
+        offset=18,
+        translation_key="parameter0x35_18",
+        name="parameter0x35_18",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    # DHW heat on? not writeable
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_80",
+        parameter=0x35,
+        offset=80,
+        translation_key="parameter0x35_80",
+        name="parameter0x35_80",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    # compressor on ? not writable
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_10",
+        parameter=0x35,
+        offset=10,
+        translation_key="parameter0x35_10",
+        name="parameter0x35_10",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    # TODO
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_19",
+        parameter=0x35,
+        offset=19,
+        translation_key="parameter0x35_19",
+        name="parameter0x35_19",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_33",
+        parameter=0x35,
+        offset=33,
+        translation_key="parameter0x35_33",
+        name="parameter0x35_33",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_34",
+        parameter=0x35,
+        offset=34,
+        translation_key="parameter0x35_34",
+        name="parameter0x35_34",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_39",
+        parameter=0x35,
+        offset=39,
+        translation_key="parameter0x35_39",
+        name="parameter0x35_39",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_57",
+        parameter=0x35,
+        offset=57,
+        translation_key="parameter0x35_57",
+        name="parameter0x35_57",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
+    ),
+    DaikinP1P2SwitchEntityDescription(
+        key="parameter0x35_58",
+        parameter=0x35,
+        offset=58,
+        translation_key="parameter0x35_58",
+        name="parameter0x35_58",
+        device_class=SwitchDeviceClass.SWITCH,
+        is_dhw=True,
+        is_ejha=True,
     ),
 )
 
@@ -74,6 +234,8 @@ class DaikinP1P2Switch(DaikinEntity, SwitchEntity):
     """Representation of an Daikin P1P2 switch device."""
 
     entity_description: DaikinP1P2SwitchEntityDescription
+
+    _attr_should_rate_limit = False
 
     def __init__(
         self,
@@ -100,16 +262,10 @@ class DaikinP1P2Switch(DaikinEntity, SwitchEntity):
 
     def turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        self._proto.set_parameter(
-            self.entity_description.parameter, self.entity_description.offset, 1
-        )
-
-        self._attr_is_on = True
+        p_o = self.entity_description.key.replace("parameter", "").split("_")
+        self._proto.set_parameter(int(p_o[0], base=0), int(p_o[1], base=0), 1)
 
     def turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        self._proto.set_parameter(
-            self.entity_description.parameter, self.entity_description.offset, 0
-        )
-
-        self._attr_is_on = False
+        p_o = self.entity_description.key.replace("parameter", "").split("_")
+        self._proto.set_parameter(int(p_o[0], base=0), int(p_o[1], base=0), 0)

@@ -101,6 +101,7 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
 
         self._send_b8_packet(now)
 
+    @callback
     def _send_b8_packet(self, now: datetime | None = None) -> None:
         """Send b8h packet to pull energy statistics."""
         if not self._poll_energy_stats:
@@ -158,8 +159,10 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
                 "compressor_running", self._on_compressor_running_event
             )
 
-            # Get statistics now
-            self._send_b8_packet(None)
+            # Get statistics now, but wait a bit until all sensors are created
+            self.hass.loop.call_later(
+                30, self._send_b8_packet, None
+            )
 
     async def _async_update_data(self) -> None:
         """Empty update method since data is pushed."""

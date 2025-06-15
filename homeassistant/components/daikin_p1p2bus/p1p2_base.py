@@ -11,7 +11,6 @@ from construct import (
     Int16ub,
     Int16ul,
     Int24ub,
-    Int32ul,
     Padding,
     Select,
     SelectError,
@@ -246,11 +245,12 @@ class P1P2Base(P1P2SerialProtocol):
                 ),
                 "lwt_temperature" / F8P8(),
                 "dhw_temperature" / F8P8(),
-                "outside_temperature" / F8P8(),
+                "outside_temperature" / F8P8(),  # May be low pass filtered by system
                 "return_water_temperature" / F8P8(),
                 "gas_boiler_temperature" / F8P8(),
                 "refrigerant_temperature" / F8P8(),
                 "actual_room_temperature" / F8P8(),
+                # Same as outside_temperature when no discrete sensor is present
                 "external_sensor_temperature" / F8P8(),
                 "reserved" / Padding(4),
                 "trailer" / Struct("crc" / Int8ub),
@@ -347,7 +347,8 @@ class P1P2Base(P1P2SerialProtocol):
             Struct(
                 "header"
                 / Struct(
-                    "request_response" / Const(0x00, Int8ub),
+                    "request_response"
+                    / Select(Const(0x00, Int8ub), Const(0x40, Int8ub)),
                     "target_address" / Int8ub,
                     "type" / Const(0x35, Int8ub),
                 ),
@@ -369,7 +370,8 @@ class P1P2Base(P1P2SerialProtocol):
             Struct(
                 "header"
                 / Struct(
-                    "request_response" / Const(0x00, Int8ub),
+                    "request_response"
+                    / Select(Const(0x00, Int8ub), Const(0x40, Int8ub)),
                     "target_address" / Int8ub,
                     "type" / Const(0x36, Int8ub),
                 ),
@@ -390,20 +392,42 @@ class P1P2Base(P1P2SerialProtocol):
             # Packet type 38h is only updated when touching the control panel and
             # going to the energy usage menu. This will emit b8h type packets first.
             # Manually sending b8h packets will not force update of packet type 38h.
-            # Rather useless, but parse it anyways....
+            # Struct(
+            #    "header"
+            #    / Struct(
+            #        "request_response" / Const(0x00, Int8ub),
+            #        "target_address" / Int8ub,
+            #        "type" / Const(0x38, Int8ub),
+            #    ),
+            #    "offset0" / Int16ul,
+            #    "value0" / Int32ul,
+            #    "offset1" / Int16ul,
+            #    "value1" / Int32ul,
+            #    "offset2" / Int16ul,
+            #    "value2" / Int32ul,
+            #    "trailer" / Struct("crc" / Int8ub),
+            # ),
+            # System specific parameters #2
             Struct(
                 "header"
                 / Struct(
-                    "request_response" / Const(0x00, Int8ub),
+                    "request_response"
+                    / Select(Const(0x00, Int8ub), Const(0x40, Int8ub)),
                     "target_address" / Int8ub,
-                    "type" / Const(0x38, Int8ub),
+                    "type" / Const(0x3A, Int8ub),
                 ),
                 "offset0" / Int16ul,
-                "value0" / Int32ul,
+                "value0" / Int8ub,
                 "offset1" / Int16ul,
-                "value1" / Int32ul,
+                "value1" / Int8ub,
                 "offset2" / Int16ul,
-                "value2" / Int32ul,
+                "value2" / Int8ub,
+                "offset3" / Int16ul,
+                "value3" / Int8ub,
+                "offset4" / Int16ul,
+                "value4" / Int8ub,
+                "offset5" / Int16ul,
+                "value5" / Int8ub,
                 "trailer" / Struct("crc" / Int8ub),
             ),
             # Energy consumption

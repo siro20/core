@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from datetime import datetime
 
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers import entity
@@ -15,6 +17,7 @@ from .const import (
     CONF_SYSTEM_HAS_BACKUP_HEATER,
     CONF_SYSTEM_HAS_DHW,
     CONF_SYSTEM_HAS_GAS_BOILER,
+    CONF_SYSTEM_IS_EJHA_COMPATIBLE,
     CONF_SYSTEM_SUPPORTS_COOLING,
     DEFAULT_DEVICE_NAME,
     DOMAIN,
@@ -36,6 +39,8 @@ class DaikinP1P2EntityDescription:
     is_compressor: bool = False
     is_control_unit: bool = False
     is_backup_heater: bool = False
+    is_ejha: bool = False
+    hysteresis: float = 0.5
 
 
 class DaikinEntity(entity.Entity):
@@ -44,6 +49,7 @@ class DaikinEntity(entity.Entity):
     _attr_should_poll = False
     _attr_has_entity_name = True
     _attr_available = False
+    _attr_should_rate_limit = True
 
     def __init__(
         self,
@@ -56,6 +62,8 @@ class DaikinEntity(entity.Entity):
         self._proto = coordinator.proto()
 
         device_name = DEFAULT_DEVICE_NAME
+
+        self._hysteresis = entity_description.hysteresis
 
         if entity_description.is_dhw:
             device_name = "DHW"
@@ -104,7 +112,11 @@ class DaikinEntity(entity.Entity):
             if CONF_SYSTEM_SUPPORTS_COOLING in config_entry.data
             else False
         )
-
+        system_is_ejha = (
+            bool(config_entry.data[CONF_SYSTEM_IS_EJHA_COMPATIBLE])
+            if CONF_SYSTEM_IS_EJHA_COMPATIBLE in config_entry.data
+            else False
+        )
         if (
             entity_description.requires_b8_packet_polling
             and not coordinator.polls_energy_statistics()
@@ -120,9 +132,22 @@ class DaikinEntity(entity.Entity):
             self._hidden = True
         if entity_description.is_backup_heater and not system_has_backup_heater:
             self._hidden = True
+        if entity_description.is_ejha and not system_is_ejha:
+            self._hidden = True
+
         if self._hidden:
             self._attr_entity_registry_enabled_default = False
             self._attr_entity_registry_visible_default = False
+
+        # Low pass filter for temperate sensors
+        if (
+            self._attr_should_rate_limit
+            and entity_description.device_class is SensorDeviceClass.TEMPERATURE
+        ):
+            self._attr_low_pass_filter = True
+            self._historic_data_samples = []
+        else:
+            self._attr_low_pass_filter = False
 
     @property
     def device_id(self) -> str:
@@ -137,8 +162,29 @@ class DaikinEntity(entity.Entity):
     @callback
     def _on_event(self, key: str, new_value) -> None:
         """Filter events based on last update."""
+
         now = utcnow()
-        if not self._attr_available or now > self._last_update + self._min_time:
+        if self._attr_low_pass_filter:
+            self._historic_data_samples.append(
+                {"time": now, "data": new_value})
+
+            new_samples = []
+            new_value = 0.0
+            # Drop all old samples and calculate mean
+            for i in self._historic_data_samples:
+                if (now - i["time"]) < self._min_time:
+                    new_samples.append(i)
+                    new_value += i["data"]
+            self._historic_data_samples = new_samples
+
+            if len(self._historic_data_samples) > 0:
+                new_value /= len(self._historic_data_samples)
+
+        if (
+            not self._attr_should_rate_limit
+            or not self._attr_available
+            or now > self._last_update + self._min_time
+        ):
             updated = self._on_settings_change_event(key, new_value)
 
             if updated:
