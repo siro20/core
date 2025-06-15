@@ -33,9 +33,10 @@ class DaikinP1P2SliderEntityDescription(
 
 
 NUMBER_TYPES: tuple[DaikinP1P2SliderEntityDescription, ...] = (
+    # Does not activate the heating, just changes the DHW setpoint
     DaikinP1P2SliderEntityDescription(
-        key="parameter0x36_03",
-        translation_key="parameter0x36_03",
+        key="dhw_setpoint_override",
+        translation_key="dhw_setpoint_override",
         native_step=0.1,
         native_min_value=40,
         native_max_value=60,
@@ -79,20 +80,25 @@ class DaikinP1P2Slider(DaikinEntity, NumberEntity):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize a Daikin P1P2 Entity."""
-        DaikinEntity.__init__(self, entity_description, coordinator, config_entry)
+        DaikinEntity.__init__(self, entity_description,
+                              coordinator, config_entry)
 
     @callback
     def _on_settings_change_event(self, key: str, new_value) -> bool:
-        """Update attributes from last received message for this object."""
+        """Update attributes from last received message for this object.
+           Parameter36 is using 1/10 units.
+        """
 
         if self._attr_native_value is None:
-            self._attr_native_value = None if new_value is None else bool(new_value)
+            self._attr_native_value = None if new_value is None else float(
+                new_value / 10)
             return True
 
-        if self._attr_native_value == bool(new_value):
+        if self._attr_native_value == float(new_value / 10):
             return False
 
-        self._attr_native_value = None if new_value is None else bool(new_value)
+        self._attr_native_value = None if new_value is None else float(
+            new_value / 10)
         return True
 
     def set_native_value(self, value: float) -> None:
@@ -100,5 +106,5 @@ class DaikinP1P2Slider(DaikinEntity, NumberEntity):
         self._proto.set_parameter(
             self.entity_description.parameter,
             self.entity_description.offset,
-            int(value),
+            int(value * 10),
         )
