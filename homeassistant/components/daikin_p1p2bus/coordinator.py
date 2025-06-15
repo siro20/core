@@ -89,9 +89,6 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
                 cancel_on_shutdown=True,
             )
 
-            # Get statistics now
-            self._send_b8_packet(None)
-
         _LOGGER.debug(
             "Initialized Daikin P1/P2 coordinator on %s@%d baud", port, baud)
 
@@ -112,8 +109,8 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
         # Request update energy statistics by sending b8h packet.
         # When compressor is on, it draws minimum 1000Watt.
         # Checking once an hour should be fine...
-        self._proto.transmit(False, 0x00, 0xB8, b"x\00")
-        self._proto.transmit(False, 0x00, 0xB8, b"x\05")
+        self._proto.transmit(False, 0x00, 0xB8, b"\x00")
+        self._proto.transmit(False, 0x00, 0xB8, b"\x05")
 
     def allow_writes(self) -> bool:
         return self._gateway_supports_tx
@@ -160,6 +157,9 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
             self._proto.add_settings_change_listener(
                 "compressor_running", self._on_compressor_running_event
             )
+
+            # Get statistics now
+            self._send_b8_packet(None)
 
     async def _async_update_data(self) -> None:
         """Empty update method since data is pushed."""
