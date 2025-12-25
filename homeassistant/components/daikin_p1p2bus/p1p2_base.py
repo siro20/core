@@ -46,9 +46,12 @@ class F8P8(Adapter):
         super().__init__(Int16ub)
 
     def _decode(self, obj, context, path):
-        return float(obj) / 256.0
+        obj = obj & 0xFFFF
+        return float(obj | (-(obj & 0x8000))) / 256.0
 
     def _encode(self, obj, context, path):
+        if obj > 127 or obj < -128:
+            return 0xFFFF
         return Int16ub(obj * 256.0)
 
 

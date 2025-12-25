@@ -106,6 +106,18 @@
       }
     },
     "sensor": {
+      "compressor_energy_heating_estimate": {
+        "name": "Verbrauch Heizung Schätzung"
+      },
+      "compressor_energy_dhw_energy_estimate": {
+        "name": "Verbrauch DHW Schätzung"
+      },
+      "compressor_energy_total_energy_estimate": {
+        "name": "Verbrauch Gesamt Schätzung"
+      },
+      "compressor_power_estimate": {
+        "name": "Leistung Compressor Schätzung"
+      },
       "gas_usage_total": {
         "name": "Verbrauch Gesamt"
       },

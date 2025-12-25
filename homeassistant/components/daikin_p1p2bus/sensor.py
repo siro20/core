@@ -14,6 +14,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     UnitOfEnergy,
+    UnitOfPower,
     UnitOfTemperature,
     UnitOfTime,
     UnitOfVolume,
@@ -22,6 +23,11 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DaikinP1P2UpdateCoordinator
+from .energy import (
+    DaikinEnergyEstimatorDHWEntity,
+    DaikinEnergyEstimatorEntity,
+    DaikinPowerEstimatorEntity,
+)
 from .entity import DaikinEntity, DaikinP1P2EntityDescription
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,6 +40,49 @@ class DaikinP1P2SensorEntityDescription(
     """Describes Daikin P1P2 sensor entity."""
 
 
+ESTIMATED_POWER_SENSOR_TYPE = DaikinP1P2SensorEntityDescription(
+    key="compressor_power_estimate",
+    translation_key="compressor_power_estimate",
+    device_class=SensorDeviceClass.POWER,
+    native_unit_of_measurement=UnitOfPower.WATT,
+    requires_b8_packet_polling=True,
+    is_control_unit=True,
+    hysteresis=1,
+)
+
+ESTIMATED_ENERGY_TOTAL_SENSOR_TYPE = DaikinP1P2SensorEntityDescription(
+    key="compressor_energy_total_energy_estimate",
+    translation_key="compressor_energy_total_energy_estimate",
+    state_class=SensorStateClass.TOTAL_INCREASING,
+    device_class=SensorDeviceClass.ENERGY,
+    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    requires_b8_packet_polling=True,
+    is_control_unit=True,
+    hysteresis=0.05,
+)
+
+ESTIMATED_ENERGY_DHW_SENSOR_TYPE = DaikinP1P2SensorEntityDescription(
+    key="compressor_energy_dhw_energy_estimate",
+    translation_key="compressor_energy_dhw_energy_estimate",
+    state_class=SensorStateClass.TOTAL_INCREASING,
+    device_class=SensorDeviceClass.ENERGY,
+    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    requires_b8_packet_polling=True,
+    is_control_unit=True,
+    hysteresis=0.05,
+)
+
+ESTIMATED_ENERGY_HEATING_SENSOR_TYPE = DaikinP1P2SensorEntityDescription(
+    key="compressor_energy_heating_estimate",
+    translation_key="compressor_energy_heating_estimate",
+    state_class=SensorStateClass.TOTAL_INCREASING,
+    device_class=SensorDeviceClass.ENERGY,
+    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+    requires_b8_packet_polling=True,
+    is_control_unit=True,
+    hysteresis=0.05,
+)
+
 SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
     DaikinP1P2SensorEntityDescription(
         key="lwt_temperature",
@@ -43,6 +92,11 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         suggested_display_precision=1,
         is_compressor=True,
         hysteresis=1,
+    ),
+    DaikinP1P2SensorEntityDescription(
+        key="three_way_valve",
+        translation_key="three_way_valve",
+        is_dhw=True,
     ),
     DaikinP1P2SensorEntityDescription(
         key="dhw_temperature",
@@ -184,7 +238,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         key="gas_boiler_operation_hours_heating",
         translation_key="gas_boiler_operation_hours_heating",
         state_class=SensorStateClass.TOTAL_INCREASING,
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.HOURS,
         requires_b8_packet_polling=True,
         is_boiler=True,
@@ -251,21 +305,6 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
 )
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddConfigEntryEntitiesCallback,
-) -> None:
-    """Set up sensors."""
-
-    coordinator = config_entry.runtime_data
-
-    async_add_entities(
-        DaikinP1P2Sensor(entity_description, coordinator, config_entry)
-        for entity_description in SENSOR_TYPES
-    )
-
-
 class DaikinP1P2Sensor(DaikinEntity, SensorEntity):
     """Representation of a Daikin P1/P2 sensor."""
 
@@ -307,3 +346,177 @@ class DaikinP1P2Sensor(DaikinEntity, SensorEntity):
     def available(self) -> bool:
         """Returns whether entity is available."""
         return super().available and self._attr_native_value is not None
+
+
+class DaikinPowerEstimatorSensor(DaikinPowerEstimatorEntity, SensorEntity):
+    """Representation of a Daikin P1/P2 sensor."""
+
+    _attr_should_poll = False
+    _attr_has_entity_name = True
+
+    entity_description: DaikinP1P2SensorEntityDescription
+
+    def __init__(
+        self,
+        entity_description,
+        coordinator: DaikinP1P2UpdateCoordinator,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize a Daikin P1P2 sensor."""
+        DaikinPowerEstimatorEntity.__init__(
+            self, entity_description, coordinator, config_entry
+        )
+
+    @callback
+    def _on_settings_change_event(self, key: str, new_value) -> bool:
+        """Update attributes from last received message for this object."""
+        if key != self.entity_description.key:
+            return False
+
+        if self._attr_native_value is None:
+            self._attr_native_value = new_value
+            return True
+
+        if isinstance(new_value, float) and isinstance(self._attr_native_value, float):
+            if (
+                self._attr_native_value < new_value + self._hysteresis
+                and self._attr_native_value > new_value - self._hysteresis
+            ):
+                return False
+        elif self._attr_native_value == new_value:
+            return False
+
+        self._attr_native_value = new_value
+        return True
+
+    @property
+    def available(self) -> bool:
+        """Returns whether entity is available."""
+        return super().available and self._attr_native_value is not None
+
+
+class DaikinEnergyEstimatorDHWSensor(DaikinEnergyEstimatorDHWEntity, SensorEntity):
+    """Representation of a Daikin P1/P2 sensor."""
+
+    _attr_should_poll = False
+    _attr_has_entity_name = True
+
+    entity_description: DaikinP1P2SensorEntityDescription
+
+    def __init__(
+        self,
+        power_estimator: DaikinPowerEstimatorEntity,
+        entity_description,
+        coordinator: DaikinP1P2UpdateCoordinator,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize a Daikin P1P2 sensor."""
+        DaikinEnergyEstimatorDHWEntity.__init__(
+            self, power_estimator, entity_description, coordinator, config_entry
+        )
+
+    @callback
+    def _on_settings_change_event(self, key: str, new_value) -> bool:
+        """Update attributes from last received message for this object."""
+        if key != self.entity_description.key:
+            return False
+
+        if self._attr_native_value is None:
+            self._attr_native_value = new_value
+            return True
+
+        if isinstance(new_value, float) and isinstance(self._attr_native_value, float):
+            if (
+                self._attr_native_value < new_value + self._hysteresis
+                and self._attr_native_value > new_value - self._hysteresis
+            ):
+                return False
+        elif self._attr_native_value == new_value:
+            return False
+
+        self._attr_native_value = new_value
+        return True
+
+    @property
+    def available(self) -> bool:
+        """Returns whether entity is available."""
+        return super().available and self._attr_native_value is not None
+
+
+class DaikinEnergyEstimatorSensor(DaikinEnergyEstimatorEntity, SensorEntity):
+    """Representation of a Daikin P1/P2 sensor."""
+
+    _attr_should_poll = False
+    _attr_has_entity_name = True
+
+    entity_description: DaikinP1P2SensorEntityDescription
+
+    def __init__(
+        self,
+        power_estimator: DaikinPowerEstimatorEntity,
+        entity_description,
+        coordinator: DaikinP1P2UpdateCoordinator,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize a Daikin P1P2 sensor."""
+        DaikinEnergyEstimatorEntity.__init__(
+            self, power_estimator, entity_description, coordinator, config_entry
+        )
+
+    @callback
+    def _on_settings_change_event(self, key: str, new_value) -> bool:
+        """Update attributes from last received message for this object."""
+        if key != self.entity_description.key:
+            return False
+
+        if self._attr_native_value is None:
+            self._attr_native_value = new_value
+            return True
+
+        if isinstance(new_value, float) and isinstance(self._attr_native_value, float):
+            if (
+                self._attr_native_value < new_value + self._hysteresis
+                and self._attr_native_value > new_value - self._hysteresis
+            ):
+                return False
+        elif self._attr_native_value == new_value:
+            return False
+
+        self._attr_native_value = new_value
+        return True
+
+    @property
+    def available(self) -> bool:
+        """Returns whether entity is available."""
+        return super().available and self._attr_native_value is not None
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Set up sensors."""
+
+    coordinator = config_entry.runtime_data
+
+    # real sensors
+    async_add_entities(
+        DaikinP1P2Sensor(entity_description, coordinator, config_entry)
+        for entity_description in SENSOR_TYPES
+    )
+
+    # virtual sensors
+    pw = DaikinPowerEstimatorSensor(
+        ESTIMATED_POWER_SENSOR_TYPE, coordinator, config_entry
+    )
+    eeHeating = DaikinEnergyEstimatorDHWSensor(
+        pw, ESTIMATED_ENERGY_HEATING_SENSOR_TYPE, coordinator, config_entry
+    )
+    eeDhw = DaikinEnergyEstimatorDHWSensor(
+        pw, ESTIMATED_ENERGY_DHW_SENSOR_TYPE, coordinator, config_entry
+    )
+    eeTotal = DaikinEnergyEstimatorSensor(
+        pw, ESTIMATED_ENERGY_TOTAL_SENSOR_TYPE, coordinator, config_entry
+    )
+    async_add_entities((pw, eeHeating, eeDhw, eeTotal))

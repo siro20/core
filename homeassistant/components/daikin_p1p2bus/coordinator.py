@@ -73,8 +73,7 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
         self.device_info = DeviceInfo(
             name=DEFAULT_DEVICE_NAME,
             manufacturer=MANUFACTURER,
-            identifiers={(DOMAIN, DEFAULT_DEVICE_NAME,
-                          config_entry.unique_id)},
+            identifiers={(DOMAIN, DEFAULT_DEVICE_NAME, config_entry.unique_id)},
         )
         self.last_update_success = False
         if self._gateway_supports_tx and self._poll_energy_stats:
@@ -89,8 +88,7 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
                 cancel_on_shutdown=True,
             )
 
-        _LOGGER.debug(
-            "Initialized Daikin P1/P2 coordinator on %s@%d baud", port, baud)
+        _LOGGER.debug("Initialized Daikin P1/P2 coordinator on %s@%d baud", port, baud)
 
     def _send_b8_packet_cancel(self, now: datetime | None = None) -> None:
         """Send b8h packet when compressor is/was used."""
@@ -108,7 +106,7 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
             return
         _LOGGER.info("Requesting energy statistics...\n")
         # Request update energy statistics by sending b8h packet.
-        # When compressor is on, it draws minimum 1000Watt.
+        # When compressor is on, it draws minimum 700Watt.
         # Checking once an hour should be fine...
         self._proto.transmit(False, 0x00, 0xB8, b"\x00")
         self._proto.transmit(False, 0x00, 0xB8, b"\x05")
@@ -128,13 +126,16 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
         self._compressor_running = bool(new_value)
         if self._compressor_running and self._send_b8_packet_tti is None:
             # Poll for enery statistics
-            # Check every hour as long as compressor is running
+            # Check every 5 minutes as long as compressor is running
+            # to make sure energy estimation is exact.
             self._send_b8_packet_tti = async_track_time_interval(
                 self.hass,
                 self._send_b8_packet_cancel,
-                timedelta(hours=1),
+                timedelta(minutes=5),
                 cancel_on_shutdown=True,
             )
+        if not self._compressor_running and self._send_b8_packet_tti:
+            self._send_b8_packet_cancel()
 
     def proto(self) -> P1P2Protocol:
         """Return the protocol."""
@@ -160,9 +161,7 @@ class DaikinP1P2UpdateCoordinator(DataUpdateCoordinator[None]):
             )
 
             # Get statistics now, but wait a bit until all sensors are created
-            self.hass.loop.call_later(
-                30, self._send_b8_packet, None
-            )
+            self.hass.loop.call_later(30, self._send_b8_packet, None)
 
     async def _async_update_data(self) -> None:
         """Empty update method since data is pushed."""

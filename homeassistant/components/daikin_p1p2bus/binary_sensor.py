@@ -105,6 +105,7 @@ BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
         requires_cooling_cap=True,
         is_control_unit=True,
     ),
+    # True when main zone needs heating
     DaikinP1P2BinarySensorEntityDescription(
         key="main_zone_enabled",
         name="main_zone_enabled",
@@ -120,6 +121,7 @@ BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
         is_additonal_zone=True,
         is_control_unit=True,
     ),
+    # True when DHW needs heating
     DaikinP1P2BinarySensorEntityDescription(
         key="dhw_zone_enabled",
         name="dhw_zone_enabled",

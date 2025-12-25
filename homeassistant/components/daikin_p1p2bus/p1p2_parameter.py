@@ -63,8 +63,14 @@ class P1P2ParameterProtocol(P1P2Base):
             val = int(pkt.payload()[value])
             key = f"parameter{hex(pkt.type())}_{off}"
 
+            # Some parameters change too often. Skip them...
             if pkt.type() == 0x35 and (
-                off == 375 or off == 376 or off == 377 or off == 201
+                off == 375
+                or off == 376
+                or off == 377
+                or off == 201
+                or off == 167
+                or off == 168
             ):
                 return
 
@@ -79,7 +85,8 @@ class P1P2ParameterProtocol(P1P2Base):
                 self.on_setting_changed(key, val)
 
                 _LOGGER.debug(f"{key} = {val}")
-
+                if pkt.type() == 0x35:
+                    _LOGGER.warning(f"{key} = {val}")
         # Model name is stored somewhere in parameter35
         if pkt.type() == 0x35 and self._model == "" and self.model() != "":
             self._model = self.model()

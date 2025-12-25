@@ -1,50 +1,35 @@
 {
     "config": {
         "abort": {
-          "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+            "already_configured": "Device is already configured"
         },
         "step": {
-          "user": {
-            "title": "Serial gateway setup",
-            "description": "Do you want to configure Home Assistant to connect to the Daikin P1/P2 bus?",
-            "data": {
-              "serial_port": "[%key:common::config_flow::data::usb_path%]",
-              "serial_port_baud": "Baud rate",
-              "gateway_supports_tx": "Gateway supports transmission",
-              "system_has_dhw": "System has a DHW tank",
-              "system_has_gas_boiler": "System has a gas boiler",
-              "system_has_additional_zone": "System has an additional zone",
-              "system_supports_cooling": "System supports cooling",
-              "system_has_backup_heater": "System has a backup heater."
-
-            },
-            "data_description": {
-              "serial_port": "Serial port to access the P1/P2 bus",
-              "serial_port_baud": "Baud rate to open the serial port at",
-              "gateway_supports_tx": "Send packets to P1/P2 for advanced sensor reporting",
-              "system_has_dhw": "Disable when no DHW is present.",
-              "system_has_gas_boiler": "Disable when no gas boiler is present.",
-              "system_has_additional_zone": "Disable when no additional zone is present.",
-              "system_supports_cooling": "Disable when system can heat only.",
-              "system_has_backup_heater": "Disable when system has no backup heater."
+            "user": {
+                "data": {
+                    "gateway_supports_tx": "Gateway supports transmission",
+                    "serial_port": "USB device path",
+                    "serial_port_baud": "Baud rate",
+                    "system_has_additional_zone": "System has an additional zone",
+                    "system_has_backup_heater": "System has a backup heater.",
+                    "system_has_dhw": "System has a DHW tank",
+                    "system_has_gas_boiler": "System has a gas boiler",
+                    "system_supports_cooling": "System supports cooling"
+                },
+                "data_description": {
+                    "gateway_supports_tx": "Send packets to P1/P2 for advanced sensor reporting",
+                    "serial_port": "Serial port to access the P1/P2 bus",
+                    "serial_port_baud": "Baud rate to open the serial port at",
+                    "system_has_additional_zone": "Disable when no additional zone is present.",
+                    "system_has_backup_heater": "Disable when system has no backup heater.",
+                    "system_has_dhw": "Disable when no DHW is present.",
+                    "system_has_gas_boiler": "Disable when no gas boiler is present.",
+                    "system_supports_cooling": "Disable when system can heat only."
+                },
+                "description": "Do you want to configure Home Assistant to connect to the Daikin P1/P2 bus?",
+                "title": "Serial gateway setup"
             }
-          }
         }
-      },
-      "options": {
-        "step": {
-          "init": {
-            "title": "Daiking platform setup",
-            "data": {
-              "poll_energy_stats": "Poll energy statistics",
-              "p1p2_debug": "Enable P1/P2 bus debugging"
-            },
-            "data_description": {
-              "poll_energy_stats": "Periodically send packet 0xb8 to poll energy statistics"
-            }
-          }
-        }
-      },
+    },
     "entity": {
         "binary_sensor": {
             "additional_zone_enabled": {
@@ -78,7 +63,24 @@
                 "name": "Main Circulation pump running"
             }
         },
+        "number": {
+            "parameter0x36_3": {
+                "name": "DHW setpoint override"
+            }
+        },
         "sensor": {
+            "compressor_energy_heating_estimate": {
+              "name": "Energy consumption heating Estimate"
+            },
+            "compressor_energy_dhw_energy_estimate": {
+              "name": "Energy consumption DHW Estimate"
+            },
+            "compressor_energy_total_energy_estimate": {
+              "name": "Energy consumption total Estimate"
+            },
+            "compressor_power_estimate": {
+              "name": "Power Compressor Estimate"
+            },
             "actual_room_temperature": {
                 "name": "Actual room Temperature"
             },
@@ -126,6 +128,39 @@
             },
             "return_water_temperature": {
                 "name": "Return Water Temperature"
+            }
+        },
+        "switch": {
+            "parameter0x35_123": {
+                "name": "parameter0x35_123 - DHW circulation pump test"
+            },
+            "parameter0x35_124": {
+                "name": "parameter0x35_124 - DHW circulation pump test"
+            },
+            "parameter0x35_67": {
+                "name": "parameter0x35_67 - DHW mode test"
+            },
+            "parameter0x35_68": {
+                "name": "parameter0x35_68 - DHW mode test"
+            },
+            "parameter0x35_69": {
+                "name": "parameter0x35_69 - DHW mode test"
+            },
+            "parameter0x35_70": {
+                "name": "parameter0x35_70 - DHW mode test"
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "p1p2_debug": "Enable P1/P2 bus debugging",
+                    "poll_energy_stats": "Poll energy statistics"
+                },
+                "data_description": {
+                    "poll_energy_stats": "Periodically send packet 0xb8 to poll energy statistics"
+                }
             }
         }
     }
