@@ -189,8 +189,7 @@ class DaikinP1P2BinarySensor(DaikinEntity, BinarySensorEntity):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize a Daikin P1P2 Entity."""
-        DaikinEntity.__init__(self, entity_description,
-                              coordinator, config_entry)
+        DaikinEntity.__init__(self, entity_description, coordinator, config_entry)
 
     def _on_settings_change_event(self, key: str, new_value) -> bool:
         """Update attributes from last received message for this object."""

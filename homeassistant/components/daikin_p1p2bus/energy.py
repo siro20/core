@@ -239,8 +239,7 @@ class DaikinWaitForFirstUpdateEntity:
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
-        self._proto.add_settings_change_listener(
-            self._key, self._on_key_change_event)
+        self._proto.add_settings_change_listener(self._key, self._on_key_change_event)
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
@@ -265,8 +264,7 @@ class DaikinPowerEstimatorEntity(
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the entity."""
-        DaikinWaitForFirstUpdateEntity.__init__(
-            self, "total_energy_used", coordinator)
+        DaikinWaitForFirstUpdateEntity.__init__(self, "total_energy_used", coordinator)
         DaikinCompressorOntimeEntity.__init__(self, coordinator)
 
         self.entity_description = entity_description
@@ -301,7 +299,7 @@ class DaikinPowerEstimatorEntity(
         """Return device_id."""
         return self.entity_description.key
 
-    def estimated_power(self) -> (float | None):
+    def estimated_power(self) -> float | None:
         return self._estimate_power
 
     def _on_setting_flip_event(self, key: str, new_value) -> None:
@@ -416,14 +414,12 @@ class DaikinEnergyEstimatorDHWEntity(
         """Initialize the entity."""
 
         if entity_description.key == "compressor_energy_dhw_energy_estimate":
-            DaikinDHWAndCompressorOntimeEntity.__init__(
-                self, False, coordinator)
+            DaikinDHWAndCompressorOntimeEntity.__init__(self, False, coordinator)
             DaikinWaitForFirstUpdateEntity.__init__(
                 self, "compressor_for_dhw", coordinator
             )
         elif entity_description.key == "compressor_energy_heating_estimate":
-            DaikinDHWAndCompressorOntimeEntity.__init__(
-                self, True, coordinator)
+            DaikinDHWAndCompressorOntimeEntity.__init__(self, True, coordinator)
             DaikinWaitForFirstUpdateEntity.__init__(
                 self, "compressor_for_heating", coordinator
             )
@@ -535,8 +531,7 @@ class DaikinEnergyEstimatorDHWEntity(
         if ontime == 0:
             return
         estimated_kwh = (
-            float(ontime) * self._power_estimator.estimated_power() /
-            float(1000 * 3600)
+            float(ontime) * self._power_estimator.estimated_power() / float(1000 * 3600)
         )
 
         # When accumulated to fast wait a bit, even though it's "on"
@@ -549,8 +544,7 @@ class DaikinEnergyEstimatorDHWEntity(
         new_estimate = float(self._energy_counter) + estimated_kwh
 
         # No backwards running counter
-        self._energy_counter_estimate = max(
-            self._energy_counter_estimate, new_estimate)
+        self._energy_counter_estimate = max(self._energy_counter_estimate, new_estimate)
         self._on_event()
 
     async def async_added_to_hass(self) -> None:
@@ -600,8 +594,7 @@ class DaikinEnergyEstimatorEntity(
         if entity_description.key != "compressor_energy_total_energy_estimate":
             raise Exception("Unsupported")
         DaikinCompressorOntimeEntity.__init__(self, coordinator)
-        DaikinWaitForFirstUpdateEntity.__init__(
-            self, "total_energy_used", coordinator)
+        DaikinWaitForFirstUpdateEntity.__init__(self, "total_energy_used", coordinator)
 
         self.entity_description = entity_description
         self._proto = coordinator.proto()
@@ -707,8 +700,7 @@ class DaikinEnergyEstimatorEntity(
         if ontime == 0:
             return
         estimated_kwh = (
-            float(ontime) * self._power_estimator.estimated_power() /
-            float(1000 * 3600)
+            float(ontime) * self._power_estimator.estimated_power() / float(1000 * 3600)
         )
 
         # When accumulated to fast wait a bit, even though it's "on"
@@ -720,8 +712,7 @@ class DaikinEnergyEstimatorEntity(
         )
         new_estimate = float(self._energy_counter) + estimated_kwh
         # No backwards running counter
-        self._energy_counter_estimate = max(
-            self._energy_counter_estimate, new_estimate)
+        self._energy_counter_estimate = max(self._energy_counter_estimate, new_estimate)
         self._on_event()
 
     async def async_added_to_hass(self) -> None:
