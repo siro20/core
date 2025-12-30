@@ -137,6 +137,27 @@ BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
     ),
 )
 
+# Parameter 0x35
+# Silence level 1:
+# 900 W
+# parameter0x35_0 = 1
+# parameter0x35_1 = 1
+# parameter0x35_3 = 1
+# parameter0x35_4 = 1
+
+# Silence level 2:
+# parameter0x35_0 = 2
+# parameter0x35_1 = 2
+# parameter0x35_3 = 1
+# parameter0x35_4 = 1
+
+# No silence level:
+# 1600 W
+# parameter0x35_0 = 0
+# parameter0x35_1 = 0
+# parameter0x35_3 = 0
+# parameter0x35_4 = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -168,7 +189,8 @@ class DaikinP1P2BinarySensor(DaikinEntity, BinarySensorEntity):
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize a Daikin P1P2 Entity."""
-        DaikinEntity.__init__(self, entity_description, coordinator, config_entry)
+        DaikinEntity.__init__(self, entity_description,
+                              coordinator, config_entry)
 
     def _on_settings_change_event(self, key: str, new_value) -> bool:
         """Update attributes from last received message for this object."""

@@ -216,7 +216,7 @@ class DaikinWaitForFirstUpdateEntity:
         self._proto = coordinator.proto()
         self._key = key
 
-        self._value_last: int = None
+        self._energy_counter: int = None
 
     @callback
     @abstractmethod
@@ -225,18 +225,22 @@ class DaikinWaitForFirstUpdateEntity:
 
     @callback
     def _on_key_change_event(self, key: str, new_value) -> bool:
-        if self._value_last is None:
+        if new_value is None:
+            return
+        if self._energy_counter is None:
             # Updated on POR
-            self._value_last = new_value
+            self._energy_counter = new_value
             return
-        if new_value == self._value_last:
+        if new_value == self._energy_counter:
             return
-        self._value_last = new_value
+        self._energy_counter = new_value
+        _LOGGER.warning(f"_on_setting_flip_event {self._key}={new_value} kWh")
         self._on_setting_flip_event(key, new_value)
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
-        self._proto.add_settings_change_listener(self._key, self._on_key_change_event)
+        self._proto.add_settings_change_listener(
+            self._key, self._on_key_change_event)
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
@@ -261,7 +265,8 @@ class DaikinPowerEstimatorEntity(
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the entity."""
-        DaikinWaitForFirstUpdateEntity.__init__(self, "total_energy_used", coordinator)
+        DaikinWaitForFirstUpdateEntity.__init__(
+            self, "total_energy_used", coordinator)
         DaikinCompressorOntimeEntity.__init__(self, coordinator)
 
         self.entity_description = entity_description
@@ -270,7 +275,7 @@ class DaikinPowerEstimatorEntity(
 
         self._last_total_energy_used: int = None  # KWh
 
-        self._estimate_power: float = 1300  # W # FIXME use none
+        self._estimate_power: float = None  # W
 
         device_name = "ControlUnit"
 
@@ -296,18 +301,18 @@ class DaikinPowerEstimatorEntity(
         """Return device_id."""
         return self.entity_description.key
 
-    def estimated_power(self) -> float:
+    def estimated_power(self) -> (float | None):
         return self._estimate_power
 
     def _on_setting_flip_event(self, key: str, new_value) -> None:
         if key != "total_energy_used":
             return
+
         # After POR need to wait for _last_total_energy_used to flip the first time
         if self._last_total_energy_used is None:
             self._last_total_energy_used = new_value
             self.get_compressor_ontime_and_reset()
             return
-        _LOGGER.warning(f"_on_setting_flip_event {key}={new_value} kWh")
         # Sanity check
         if new_value <= self._last_total_energy_used:
             return
@@ -321,7 +326,11 @@ class DaikinPowerEstimatorEntity(
         self._last_total_energy_used = new_value
 
         # Needed _last_total_ontime seconds for 1KWh = 1000 Wh = 1000 * 60 * 60 Ws
-        self._estimate_power = (1000.0 * 3600.0) / float(last_total_ontime)
+        estimate = (1000.0 * 3600.0) / float(last_total_ontime)
+        if self._estimate_power is None:
+            self._estimate_power = estimate
+        else:
+            self._estimate_power = self._estimate_power * 0.75 + estimate * 0.25
 
         _LOGGER.warning(
             "Last ontime %d seconds for 1KWh, %d W",
@@ -407,12 +416,14 @@ class DaikinEnergyEstimatorDHWEntity(
         """Initialize the entity."""
 
         if entity_description.key == "compressor_energy_dhw_energy_estimate":
-            DaikinDHWAndCompressorOntimeEntity.__init__(self, False, coordinator)
+            DaikinDHWAndCompressorOntimeEntity.__init__(
+                self, False, coordinator)
             DaikinWaitForFirstUpdateEntity.__init__(
                 self, "compressor_for_dhw", coordinator
             )
         elif entity_description.key == "compressor_energy_heating_estimate":
-            DaikinDHWAndCompressorOntimeEntity.__init__(self, True, coordinator)
+            DaikinDHWAndCompressorOntimeEntity.__init__(
+                self, True, coordinator)
             DaikinWaitForFirstUpdateEntity.__init__(
                 self, "compressor_for_heating", coordinator
             )
@@ -425,8 +436,8 @@ class DaikinEnergyEstimatorDHWEntity(
         self._power_estimator = power_estimator
 
         # KWh
-        self._energy_counter: int = None
         self._energy_counter_estimate: float = None
+        self._energy_counter: int = None
 
         self._periodic_counter: CALLBACK_TYPE | None = None
 
@@ -486,14 +497,9 @@ class DaikinEnergyEstimatorDHWEntity(
     @callback
     def _on_setting_flip_event(self, key: str, new_value) -> None:
         """Called when entity_description.key flips over"""
-
-        if self._energy_counter is None:
-            self._energy_counter = new_value
-            self._energy_counter_estimate = new_value
-        elif self._energy_counter >= new_value:
-            return
-        _LOGGER.warning(f"_on_setting_flip_event {key}={new_value} kWh")
-
+        self._energy_counter = int(new_value)
+        if self._energy_counter_estimate is None:
+            self._energy_counter_estimate = float(new_value)
         # Reset ontime counter
         self.get_compressor_ontime_and_reset()
 
@@ -511,10 +517,7 @@ class DaikinEnergyEstimatorDHWEntity(
 
     @callback
     def _async_five_minute_task(self, now: datetime) -> None:
-        """Run tasks every minute."""
-        if not self._compressor_status:
-            # Nothing to do when off
-            return
+        """Run tasks every 5 minutes."""
         if (
             self._power_estimator is None
             or self._power_estimator.estimated_power() is None
@@ -532,7 +535,8 @@ class DaikinEnergyEstimatorDHWEntity(
         if ontime == 0:
             return
         estimated_kwh = (
-            float(ontime) * self._power_estimator.estimated_power() / float(1000 * 3600)
+            float(ontime) * self._power_estimator.estimated_power() /
+            float(1000 * 3600)
         )
 
         # When accumulated to fast wait a bit, even though it's "on"
@@ -545,7 +549,8 @@ class DaikinEnergyEstimatorDHWEntity(
         new_estimate = float(self._energy_counter) + estimated_kwh
 
         # No backwards running counter
-        self._energy_counter_estimate = max(self._energy_counter_estimate, new_estimate)
+        self._energy_counter_estimate = max(
+            self._energy_counter_estimate, new_estimate)
         self._on_event()
 
     async def async_added_to_hass(self) -> None:
@@ -595,7 +600,8 @@ class DaikinEnergyEstimatorEntity(
         if entity_description.key != "compressor_energy_total_energy_estimate":
             raise Exception("Unsupported")
         DaikinCompressorOntimeEntity.__init__(self, coordinator)
-        DaikinWaitForFirstUpdateEntity.__init__(self, "total_energy_used", coordinator)
+        DaikinWaitForFirstUpdateEntity.__init__(
+            self, "total_energy_used", coordinator)
 
         self.entity_description = entity_description
         self._proto = coordinator.proto()
@@ -603,8 +609,8 @@ class DaikinEnergyEstimatorEntity(
         self._power_estimator = power_estimator
 
         # KWh
-        self._energy_counter: int = None
         self._energy_counter_estimate: float = None
+        self._energy_counter: int = None
 
         self._periodic_counter: CALLBACK_TYPE | None = None
 
@@ -664,13 +670,10 @@ class DaikinEnergyEstimatorEntity(
     @callback
     def _on_setting_flip_event(self, key: str, new_value) -> None:
         """Called when entity_description.key flips over"""
-        if self._energy_counter is None:
-            self._energy_counter = new_value
-            self._energy_counter_estimate = new_value
-        elif self._energy_counter >= new_value:
-            return
-        _LOGGER.warning(f"_on_setting_flip_event {key}={new_value} kWh")
 
+        self._energy_counter = int(new_value)
+        if self._energy_counter_estimate is None:
+            self._energy_counter_estimate = float(new_value)
         # Reset ontime counter
         self.get_compressor_ontime_and_reset()
 
@@ -687,10 +690,7 @@ class DaikinEnergyEstimatorEntity(
 
     @callback
     def _async_five_minute_task(self, now: datetime) -> None:
-        """Run tasks every minute."""
-        if not self._compressor_status:
-            # Nothing to do when off
-            return
+        """Run tasks every 5 minutes."""
         if (
             self._power_estimator is None
             or self._power_estimator.estimated_power() == 0
@@ -707,7 +707,8 @@ class DaikinEnergyEstimatorEntity(
         if ontime == 0:
             return
         estimated_kwh = (
-            float(ontime) * self._power_estimator.estimated_power() / float(1000 * 3600)
+            float(ontime) * self._power_estimator.estimated_power() /
+            float(1000 * 3600)
         )
 
         # When accumulated to fast wait a bit, even though it's "on"
@@ -719,7 +720,8 @@ class DaikinEnergyEstimatorEntity(
         )
         new_estimate = float(self._energy_counter) + estimated_kwh
         # No backwards running counter
-        self._energy_counter_estimate = max(self._energy_counter_estimate, new_estimate)
+        self._energy_counter_estimate = max(
+            self._energy_counter_estimate, new_estimate)
         self._on_event()
 
     async def async_added_to_hass(self) -> None:

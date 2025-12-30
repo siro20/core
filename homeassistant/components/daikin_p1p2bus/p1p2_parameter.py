@@ -71,6 +71,8 @@ class P1P2ParameterProtocol(P1P2Base):
                 or off == 201
                 or off == 167
                 or off == 168
+                or off == 91
+                or off == 182
             ):
                 return
 
