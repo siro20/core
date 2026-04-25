@@ -33,10 +33,14 @@ class P1P2SerialProtocol(asyncio.Protocol):
         self._connection_listeners: list[Callable[[bool], None]] = []
 
     async def _resume_reading(self, delay):
+        if not self._running or self._transport is None:
+            return
         await asyncio.sleep(delay)
         self._transport.resume_reading()
 
     def _delay_reading(self, delay):
+        if not self._running or self._transport is None:
+            return
         self._transport.pause_reading()
         asyncio.ensure_future(self._resume_reading(delay), loop=self._loop)
 

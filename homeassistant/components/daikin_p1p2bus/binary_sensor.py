@@ -37,7 +37,7 @@ BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
         name="main_pump_running",
         device_class=BinarySensorDeviceClass.RUNNING,
         translation_key="main_pump_running",
-        is_control_unit=True,
+        is_boiler=True,
     ),
     DaikinP1P2BinarySensorEntityDescription(
         key="dhw_boiler_running",
@@ -135,6 +135,13 @@ BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
         is_control_unit=True,
         is_ejha=True,
     ),
+    # Same as paramter 0x35_3 and 0x35_4
+    DaikinP1P2BinarySensorEntityDescription(
+        key="quiet_mode_enabled",
+        name="quiet_mode_enabled",
+        translation_key="quiet_mode_enabled",
+        is_compressor=True,
+    ),
 )
 
 # Parameter 0x35
@@ -157,6 +164,9 @@ BINARY_SENSOR_TYPES: tuple[DaikinP1P2BinarySensorEntityDescription, ...] = (
 # parameter0x35_1 = 0
 # parameter0x35_3 = 0
 # parameter0x35_4 = 0
+
+# Operation mode stay warm
+# parameter0x35_9 = 1
 
 
 async def async_setup_entry(

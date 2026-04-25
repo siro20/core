@@ -140,20 +140,24 @@ class P1P2Base(P1P2SerialProtocol):
                     )
                 ),
                 "reserved" / Padding(4),
-                "target_room_temperature" / Int8ub,
-                "reserved1" / Padding(1),
-                "operation_flags" / Int8ub,
-                "quiet_mode_request" / Int8ub,
-                "dhw_circulation"
+                "target_room_temperature" / F8P8(),  # Unknown
+                "quiet_mode_config"
                 / Bitwise(
                     Struct(
-                        Padding(2),
-                        # FIXME: Not working. UI says enabled, but pump isn't running...
-                        "dhw_circulation_running" / BitsInteger(1),
-                        Padding(5),
+                        "quiet_mode_lvl" / BitsInteger(2),
+                        Padding(6),
                     )
                 ),
-                "reserved2" / Padding(5),
+                "quiet_mode_request"
+                / Bitwise(
+                    Struct(
+                        Padding(5),
+                        "quiet_mode_requested" / BitsInteger(1),
+                        Padding(2),
+                    )
+                ),
+                "reserved2" / Padding(4),
+                "cooling_setpoint_temperature" / F8P8(),
                 "dhw_tank_mode"
                 / Bitwise(
                     Struct(
@@ -175,18 +179,18 @@ class P1P2Base(P1P2SerialProtocol):
                 "heating_status"
                 / Bitwise(
                     Struct(
-                        Padding(6),
+                        Padding(6),  # Doesn't change
                         # System is permitted to cool based on temperature/schedule
                         "cooling_enabled" / BitsInteger(1),
                         # System is permitted to heat based on temperature/schedule
                         "heating_enabled" / BitsInteger(1),
                     )
                 ),
-                "reserved" / Int8ub,
+                "operation_status" / Padding(1),  # Doesn't change
                 "zone_config"
                 / Bitwise(
                     Struct(
-                        # Monitor DHW zone and heat if permitted/scheduled
+                        # Enabled when DHW is being heated up.
                         "dhw_zone_enabled" / BitsInteger(1),
                         "additional_zone_enabled" / BitsInteger(1),
                         "main_zone_enabled" / BitsInteger(1),
@@ -195,15 +199,15 @@ class P1P2Base(P1P2SerialProtocol):
                         "heating_zone_enabled" / BitsInteger(1),
                     )
                 ),
-                "three_way_valve" / Int8ub,
+                "three_way_valve" / Int8ub,  # Not changing on EHJAxxxx
                 "dhw_tank_target_temperature" / F8P8(),
                 "reserved1" / Padding(5),
-                "quiet_mode"
+                "quiet_mode_status"
                 / Bitwise(
                     Struct(
-                        Padding(6),
+                        Padding(5),
                         "quiet_mode_enabled" / BitsInteger(1),
-                        Padding(1),
+                        Padding(2),
                     )
                 ),
                 "reserved2" / Padding(6),
@@ -219,10 +223,11 @@ class P1P2Base(P1P2SerialProtocol):
                 "dhw_active"
                 / Bitwise(
                     Struct(
-                        Padding(6),
+                        Padding(6),  # Doesn't change
                         # 1 when DHW is heated by gas boiler
+                        # but also 1 for 10 minutes, 20times a day when not being heated
                         "dhw_boiler_running" / BitsInteger(1),
-                        Padding(1),
+                        Padding(1),  # Doesn't change
                     )
                 ),
                 "trailer" / Struct("crc" / Int8ub),
@@ -502,6 +507,7 @@ class P1P2Base(P1P2SerialProtocol):
             )
         payload = {}
         header = {}
+
         for i in container:
             if i in ("header", "trailer"):
                 continue

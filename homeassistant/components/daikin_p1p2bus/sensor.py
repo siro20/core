@@ -94,9 +94,9 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         hysteresis=1,
     ),
     DaikinP1P2SensorEntityDescription(
-        key="three_way_valve",
-        translation_key="three_way_valve",
-        is_dhw=True,
+        key="quiet_mode_requested",
+        translation_key="quiet_mode_requested",
+        is_compressor=True,
     ),
     DaikinP1P2SensorEntityDescription(
         key="dhw_temperature",
@@ -113,7 +113,7 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
-        is_control_unit=True,
+        is_compressor=True,
     ),
     DaikinP1P2SensorEntityDescription(
         key="return_water_temperature",
@@ -145,14 +145,6 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
     DaikinP1P2SensorEntityDescription(
         key="actual_room_temperature",
         translation_key="actual_room_temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        suggested_display_precision=1,
-        is_control_unit=True,
-    ),
-    DaikinP1P2SensorEntityDescription(
-        key="external_sensor_temperature",
-        translation_key="external_sensor_temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         suggested_display_precision=1,
@@ -301,6 +293,13 @@ SENSOR_TYPES: tuple[DaikinP1P2SensorEntityDescription, ...] = (
         requires_b8_packet_polling=True,
         is_backup_heater=True,
         hysteresis=0,
+    ),
+    # Same as paramter 0x35_0 and 0x35_1
+    DaikinP1P2SensorEntityDescription(
+        key="quiet_mode_lvl",
+        name="quiet_mode_lvl",
+        translation_key="quiet_mode_lvl",
+        is_compressor=True,
     ),
 )
 

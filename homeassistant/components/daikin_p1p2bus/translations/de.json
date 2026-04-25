@@ -74,6 +74,9 @@
       "dhw_boiler_running": {
         "name": "DHW wird vom Gas Boiler erhitzt"
       },
+      "quiet_mode_enabled": {
+        "name": "Leisen Modus verwenden"
+      },
       "compressor_running": {
         "name": "Kompressor läuft"
       },
@@ -108,6 +111,9 @@
     "sensor": {
       "compressor_energy_heating_estimate": {
         "name": "Verbrauch Heizung Schätzung"
+      },
+      "quiet_mode_lvl" : {
+        "name": "Geräuschpegel"
       },
       "compressor_energy_dhw_energy_estimate": {
         "name": "Verbrauch DHW Schätzung"

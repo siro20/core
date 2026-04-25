@@ -6,6 +6,7 @@ from abc import abstractmethod
 import datetime
 from datetime import timedelta
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, callback
@@ -271,9 +272,18 @@ class DaikinPowerEstimatorEntity(
         self._proto = coordinator.proto()
         self._hysteresis = entity_description.hysteresis
 
+        self._quiet_mode_enabled: bool = None
+        # True when mode was updated since last KWh flip
+        self._quiet_mode_changed: bool = False
+        # Current quiet mode lvl
+        self._quiet_mode_lvl: int = None
+
         self._last_total_energy_used: int = None  # KWh
 
+        # Generic power estimate
         self._estimate_power: float = None  # W
+        # Quiet mode specific power estimate
+        self._estimate_power_lvl: dict[int, Any] = {0: None, 1: None, 2: None, 3: None}
 
         device_name = "ControlUnit"
 
@@ -300,11 +310,19 @@ class DaikinPowerEstimatorEntity(
         return self.entity_description.key
 
     def estimated_power(self) -> float | None:
+        """Returns the estimate power in W"""
+        if self._quiet_mode_enabled is not None and self._quiet_mode_lvl is not None:
+            if self._quiet_mode_enabled:
+                if self._estimate_power_lvl[self._quiet_mode_lvl] is not None:
+                    return self._estimate_power_lvl[self._quiet_mode_lvl]
         return self._estimate_power
 
     def _on_setting_flip_event(self, key: str, new_value) -> None:
         if key != "total_energy_used":
             return
+
+        quiet_mode_change = self._quiet_mode_changed
+        self._quiet_mode_changed = False
 
         # After POR need to wait for _last_total_energy_used to flip the first time
         if self._last_total_energy_used is None:
@@ -329,6 +347,19 @@ class DaikinPowerEstimatorEntity(
             self._estimate_power = estimate
         else:
             self._estimate_power = self._estimate_power * 0.75 + estimate * 0.25
+
+        # When quiet mode is on and lvl didn't change since last KWh flip, then:
+        if self._quiet_mode_enabled is not None and self._quiet_mode_lvl is not None:
+            if self._quiet_mode_enabled and not quiet_mode_change:
+                if self._estimate_power_lvl[self._quiet_mode_lvl] is None:
+                    self._estimate_power_lvl[self._quiet_mode_lvl] = estimate
+                else:
+                    old = self._estimate_power_lvl[self._quiet_mode_lvl]
+                    new = old * 0.75 + estimate * 0.25
+                    self._estimate_power_lvl[self._quiet_mode_lvl] = new
+                _LOGGER.warning(
+                    f"Adding power estimate to lvl {self._quiet_mode_lvl} = {self._estimate_power_lvl[self._quiet_mode_lvl]}"
+                )
 
         _LOGGER.warning(
             "Last ontime %d seconds for 1KWh, %d W",
@@ -367,6 +398,24 @@ class DaikinPowerEstimatorEntity(
         return
 
     @callback
+    def _on_quiet_mode_enabled_change_event(self, key: str, quiet_mode_is_on) -> None:
+        if self._quiet_mode_enabled is None:
+            self._quiet_mode_enabled = bool(quiet_mode_is_on)
+            return
+        if self._quiet_mode_enabled != bool(quiet_mode_is_on):
+            self._quiet_mode_changed = True
+        self._quiet_mode_enabled = bool(quiet_mode_is_on)
+
+    @callback
+    def _on_quiet_lvl_change_event(self, key: str, level) -> None:
+        if self._quiet_mode_lvl is None:
+            self._quiet_mode_lvl = int(level)
+            return
+        if self._quiet_mode_lvl != int(level):
+            self._quiet_mode_changed = True
+        self._quiet_mode_lvl = int(level)
+
+    @callback
     def _on_connection(self, connected: bool) -> None:
         """Notify HA about new connection state."""
         if not connected:
@@ -377,12 +426,24 @@ class DaikinPowerEstimatorEntity(
         """Run when entity about to be added to hass."""
         await DaikinWaitForFirstUpdateEntity.async_added_to_hass(self)
         await DaikinCompressorOntimeEntity.async_added_to_hass(self)
+        self._proto.add_settings_change_listener(
+            "quiet_mode_enabled", self._on_quiet_mode_enabled_change_event
+        )
+        self._proto.add_settings_change_listener(
+            "quiet_mode_lvl", self._on_quiet_lvl_change_event
+        )
         self._proto.add_connection_listener(self._on_connection)
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
         await DaikinWaitForFirstUpdateEntity.async_will_remove_from_hass(self)
         await DaikinCompressorOntimeEntity.async_will_remove_from_hass(self)
+        self._proto.remove_settings_change_listener(
+            "quiet_mode_enabled", self._on_quiet_mode_enabled_change_event
+        )
+        self._proto.remove_settings_change_listener(
+            "quiet_mode_lvl", self._on_quiet_lvl_change_event
+        )
         self._proto.remove_connection_listener(self._on_connection)
 
     @property

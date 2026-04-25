@@ -35,6 +35,9 @@
             "additional_zone_enabled": {
                 "name": "Additional heating zone Enabled"
             },
+            "quiet_mode_enabled": {
+                "name": "Use quiet mode"
+            },
             "compressor_running": {
                 "name": "Heat Pump Compressor running"
             },
@@ -71,6 +74,9 @@
         "sensor": {
             "compressor_energy_heating_estimate": {
               "name": "Energy consumption heating Estimate"
+            },
+            "quiet_mode_lvl" : {
+              "name": "Noise level"
             },
             "compressor_energy_dhw_energy_estimate": {
               "name": "Energy consumption DHW Estimate"
